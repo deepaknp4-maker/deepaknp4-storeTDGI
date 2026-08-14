@@ -30,6 +30,11 @@
             font-size: 0.75rem;
             font-weight: normal;
         }
+
+        /* Row Highlight ചെയ്യാനുള്ള Style */
+        .selected-row {
+            background-color: #fef08a !important; /* മഞ്ഞ നിറത്തിൽ Highlight ആവാൻ */
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
@@ -129,6 +134,9 @@
         
         // Dynamic row interaction tracking
         let revealedItems = {};
+        
+        // Highlight ചെയ്ത row ഓർത്തു വെക്കാൻ
+        let selectedRowId = null;
 
         window.onload = function() {
             loadSheetData();
@@ -192,7 +200,25 @@
 
             filteredData.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
+                
+                // Highlight class ചേര്‍ക്കുന്നു
+                if (selectedRowId === item.id) {
+                    tr.className = "selected-row transition cursor-pointer";
+                } else {
+                    tr.className = "hover:bg-slate-50 transition cursor-pointer";
+                }
+
+                // Row Click ചെയ്യുമ്പോൾ Highlight ചെയ്യാനുള്ള Event Listener
+                tr.onclick = function(e) {
+                    // Remarks Input, Submit Button, അല്ലെങ്കിൽ Unhide ചെയ്യാനുള്ള Cell എന്നിവയിൽ ക്ലിക്ക് ചെയ്യുമ്പോൾ Row Highlight ആകാതിരിക്കാൻ
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.clickable-cell')) {
+                        return;
+                    }
+                    
+                    // ഒരേ Row വീണ്ടും ഞെക്കിയാൽ Highlight മാറും, വേറെ Row ഞെക്കിയാൽ അങ്ങോട്ട് Highlight മാറും
+                    selectedRowId = (selectedRowId === item.id) ? null : item.id;
+                    renderTable();
+                };
 
                 let statusBadge = '<span class="px-2 py-1 rounded text-xs font-semibold status-pending">Pending</span>';
                 let displayPhysicalQty = item.physicalQty !== '' ? item.physicalQty : '-';
@@ -289,6 +315,7 @@
         function resetFilters() {
             showMismatchOnly = false;
             revealedItems = {};
+            selectedRowId = null;
             document.getElementById('mismatch-card').classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50');
             document.getElementById('mismatch-badge').classList.add('hidden');
             document.getElementById('search-input').value = '';
