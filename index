@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Store - Inventory Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .status-matched { background-color: #d1fae5; color: #065f46; }
+        .status-shortage { background-color: #fee2e2; color: #991b1b; }
+        .status-excess { background-color: #fef3c7; color: #92400e; }
+        .status-pending { background-color: #f3f4f6; color: #374151; }
+        
+        .clickable-cell {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .clickable-cell:hover {
+            background-color: #f1f5f9;
+        }
+
+        .revealed-text {
+            display: block;
+            margin-top: 4px;
+            padding: 4px 8px;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 4px;
+            color: #1e40af;
+            font-size: 0.75rem;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Inventory Management System</h1>
+                <div class="mt-2 inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-lg font-semibold text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5m-4 0h4"></path></svg>
+                    Warehouse: Main Store
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <button onclick="loadSheetData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
+                    🔄 Reload
+                </button>
+                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
+                    📥 Export CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div onclick="resetFilters()" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300 transition">
+                <p class="text-xs font-semibold text-slate-500 uppercase">Total Items</p>
+                <p id="stat-total-items" class="text-3xl font-bold text-slate-800 mt-1">0</p>
+            </div>
+            
+            <div onclick="toggleMismatchFilter()" id="mismatch-card" class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm cursor-pointer hover:bg-amber-50/50 transition">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-semibold text-amber-700 uppercase">Discrepancies / Mismatch Items</p>
+                    <span id="mismatch-badge" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium hidden">Active Filter</span>
+                </div>
+                <p id="stat-discrepancy" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+            </div>
+        </div>
+
+        <!-- Search Controls -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+            <div class="w-full md:w-52">
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search By</label>
+                <select id="search-type" onchange="filterData()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <option value="all">All Fields</option>
+                    <option value="srNo">SR No:</option>
+                    <option value="itemNo">Item Code (Item No)</option>
+                    <option value="description">Description</option>
+                </select>
+            </div>
+
+            <div class="flex-1 w-full">
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Keyword</label>
+                <input type="text" id="search-input" oninput="filterData()" placeholder="Type SR No, Item Code or Description..." class="w-full border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto max-h-[600px]">
+                <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                    <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 border-b border-slate-200 z-10">
+                        <tr>
+                            <th class="p-3 w-12 text-center">Sl No</th>
+                            <th class="p-3 w-20">SR No</th>
+                            <th id="th-itemNo" class="p-3 w-40">Item Code</th>
+                            <th id="th-description" class="p-3 w-64">Description</th>
+                            <th class="p-3 w-20">UOM</th>
+                            <th class="p-3 w-28">Location</th>
+                            <th class="p-3 w-20 text-right">SAP Qty</th>
+                            <th class="p-3 w-24 text-right">Physical Qty</th>
+                            <th class="p-3 w-24 text-center">Status</th>
+                            <th class="p-3 w-48">Remarks</th>
+                            <th class="p-3 w-24 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-tbody" class="divide-y divide-slate-200">
+                        <tr>
+                            <td colspan="11" class="p-8 text-center text-slate-500" id="loading-status">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6Pt_NVgYwPkUbRueU64yj5yEE_QCvQyfJDmxBUsbFKbUfMnmRHdyXckSAt3RGvEYUmw/exec';
+
+        let inventoryData = [];
+        let filteredData = [];
+        let showMismatchOnly = false;
+        
+        // Dynamic row interaction tracking
+        let revealedItems = {};
+
+        window.onload = function() {
+            loadSheetData();
+        };
+
+        async function loadSheetData() {
+            const loadingEl = document.getElementById('loading-status');
+            if (loadingEl) loadingEl.innerText = "Connecting to Google Sheet...";
+
+            try {
+                const res = await fetch(SCRIPT_WEB_APP_URL);
+                const rawData = await res.json();
+
+                inventoryData = rawData.map((row, index) => {
+                    return {
+                        id: index,
+                        srNo: row['SR No:'] || row['SR No'] || '',
+                        itemNo: row['Item No.'] || row['Item No'] || '',
+                        description: row['Dscription'] || row['Description'] || '',
+                        uom: row['UOM Code'] || row['UOM'] || 'Pcs',
+                        sapQty: parseFloat(row['CumulativeQty']) || parseFloat(row['SAP Qty']) || 0,
+                        physicalQty: row['Physical Stock'] !== undefined && row['Physical Stock'] !== '' ? parseFloat(row['Physical Stock']) : '',
+                        location: row['Location'] || '',
+                        remarks: row['Remarks'] || ''
+                    };
+                }).filter(item => item.itemNo !== '' && item.itemNo !== 'Item No.');
+
+                filterData();
+                updateStats();
+            } catch (err) {
+                console.error(err);
+                if (loadingEl) {
+                    loadingEl.innerHTML = `<span class="text-red-500 font-semibold">Connection failed!</span>`;
+                }
+            }
+        }
+
+        function toggleReveal(id) {
+            revealedItems[id] = !revealedItems[id];
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('inventory-tbody');
+            const searchType = document.getElementById('search-type').value;
+            tbody.innerHTML = '';
+
+            const thItemNo = document.getElementById('th-itemNo');
+            const thDesc = document.getElementById('th-description');
+
+            let hideItemNoColumn = (searchType === 'description');
+            let hideDescColumn = (searchType === 'srNo' || searchType === 'itemNo');
+
+            if (thItemNo) thItemNo.style.display = hideItemNoColumn ? 'none' : '';
+            if (thDesc) thDesc.style.display = hideDescColumn ? 'none' : '';
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="p-8 text-center text-slate-500">No matching items found.</td></tr>';
+                return;
+            }
+
+            filteredData.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+
+                let statusBadge = '<span class="px-2 py-1 rounded text-xs font-semibold status-pending">Pending</span>';
+                let displayPhysicalQty = item.physicalQty !== '' ? item.physicalQty : '-';
+
+                if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
+                    if (item.physicalQty === item.sapQty) {
+                        statusBadge = '<span class="px-2 py-1 rounded text-xs font-semibold status-matched">Matched</span>';
+                    } else if (item.physicalQty < item.sapQty) {
+                        statusBadge = '<span class="px-2 py-1 rounded text-xs font-semibold status-shortage">Shortage</span>';
+                    } else {
+                        statusBadge = '<span class="px-2 py-1 rounded text-xs font-semibold status-excess">Excess</span>';
+                    }
+                }
+
+                let isRevealed = !!revealedItems[item.id];
+
+                // Item Code Column Construction
+                let itemNoCell = '';
+                if (!hideItemNoColumn) {
+                    if (hideDescColumn) {
+                        // Click Item Code to unhide Description below it
+                        itemNoCell = `
+                            <td class="p-3 font-semibold text-slate-800 clickable-cell" onclick="toggleReveal(${item.id})" title="Touch to show Description">
+                                <div>${item.itemNo} <span class="text-[10px] text-blue-500 font-normal ml-1">(👆)</span></div>
+                                ${isRevealed ? `<div class="revealed-text">📝 ${item.description}</div>` : ''}
+                            </td>`;
+                    } else {
+                        itemNoCell = `<td class="p-3 font-semibold text-slate-800 whitespace-nowrap">${item.itemNo}</td>`;
+                    }
+                }
+
+                // Description Column Construction
+                let descCell = '';
+                if (!hideDescColumn) {
+                    if (hideItemNoColumn) {
+                        // Click Description to unhide Item Code below it
+                        descCell = `
+                            <td class="p-3 text-slate-700 clickable-cell" onclick="toggleReveal(${item.id})" title="Touch to show Item Code">
+                                <div>${item.description} <span class="text-[10px] text-blue-500 font-normal ml-1">(👆)</span></div>
+                                ${isRevealed ? `<div class="revealed-text">🏷️ Code: ${item.itemNo}</div>` : ''}
+                            </td>`;
+                    } else {
+                        descCell = `<td class="p-3 text-slate-700">${item.description}</td>`;
+                    }
+                }
+
+                tr.innerHTML = `
+                    <td class="p-3 text-center text-slate-400 font-mono text-xs">${index + 1}</td>
+                    <td class="p-3 text-slate-600 font-mono text-xs whitespace-nowrap">${item.srNo || '-'}</td>
+                    ${itemNoCell}
+                    ${descCell}
+                    <td class="p-3 text-slate-500 whitespace-nowrap">${item.uom}</td>
+                    <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs border border-slate-200 whitespace-nowrap">${item.location || 'Main Store'}</span></td>
+                    <td class="p-3 text-right font-semibold text-blue-700">${item.sapQty}</td>
+                    <td class="p-3 text-right font-semibold text-slate-700">${displayPhysicalQty}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3">
+                        <input type="text" value="${item.remarks}" oninput="updateItemField(${item.id}, 'remarks', this.value)" placeholder="Remarks..." class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </td>
+                    <td class="p-3 text-center">
+                        <button id="btn-${item.id}" onclick="submitSingleItem(${item.id})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-medium shadow-sm transition">
+                            Submit
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateItemField(id, field, value) {
+            const item = inventoryData.find(i => i.id === id);
+            if (item) {
+                item[field] = value;
+            }
+        }
+
+        function toggleMismatchFilter() {
+            showMismatchOnly = !showMismatchOnly;
+            
+            const card = document.getElementById('mismatch-card');
+            const badge = document.getElementById('mismatch-badge');
+            
+            if (showMismatchOnly) {
+                card.classList.add('ring-2', 'ring-amber-500', 'bg-amber-50');
+                badge.classList.remove('hidden');
+            } else {
+                card.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50');
+                badge.classList.add('hidden');
+            }
+            
+            filterData();
+        }
+
+        function resetFilters() {
+            showMismatchOnly = false;
+            revealedItems = {};
+            document.getElementById('mismatch-card').classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50');
+            document.getElementById('mismatch-badge').classList.add('hidden');
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-type').value = 'all';
+            filterData();
+        }
+
+        function filterData() {
+            const searchType = document.getElementById('search-type').value;
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+
+            filteredData = inventoryData.filter(item => {
+                let matchesSearch = false;
+
+                if (!query) {
+                    matchesSearch = true;
+                } else if (searchType === 'srNo') {
+                    matchesSearch = item.srNo.toString().toLowerCase().includes(query);
+                } else if (searchType === 'itemNo') {
+                    matchesSearch = item.itemNo.toLowerCase().includes(query);
+                } else if (searchType === 'description') {
+                    matchesSearch = item.description.toLowerCase().includes(query);
+                } else {
+                    matchesSearch = item.srNo.toString().toLowerCase().includes(query) ||
+                                    item.itemNo.toLowerCase().includes(query) ||
+                                    item.description.toLowerCase().includes(query);
+                }
+
+                let isMismatch = false;
+                if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
+                    isMismatch = (item.physicalQty !== item.sapQty);
+                }
+
+                return matchesSearch && (!showMismatchOnly || isMismatch);
+            });
+
+            renderTable();
+        }
+
+        function updateStats() {
+            let discrepancies = 0;
+
+            inventoryData.forEach(item => {
+                if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
+                    if (item.physicalQty !== item.sapQty) discrepancies++;
+                }
+            });
+
+            document.getElementById('stat-total-items').textContent = inventoryData.length;
+            document.getElementById('stat-discrepancy').textContent = discrepancies;
+        }
+
+        async function submitSingleItem(id) {
+            const item = inventoryData.find(i => i.id === id);
+            if (!item) return;
+
+            const btn = document.getElementById(`btn-${id}`);
+            if(btn) {
+                btn.innerText = "Saving...";
+                btn.disabled = true;
+                btn.className = "bg-amber-500 text-white text-xs px-3 py-1 rounded font-medium shadow-sm cursor-not-allowed";
+            }
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        itemNo: item.itemNo,
+                        remarks: item.remarks
+                    })
+                });
+
+                if(btn) {
+                    btn.innerText = "Saved ✓";
+                    btn.className = "bg-emerald-600 text-white text-xs px-3 py-1 rounded font-medium shadow-sm";
+                    setTimeout(() => {
+                        btn.innerText = "Submit";
+                        btn.disabled = false;
+                        btn.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-medium shadow-sm transition";
+                    }, 2000);
+                }
+            } catch (e) {
+                alert("Google Sheet-ilekk update cheyyaan kazhinjilla!");
+                if(btn) {
+                    btn.innerText = "Submit";
+                    btn.disabled = false;
+                    btn.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-medium shadow-sm transition";
+                }
+            }
+        }
+
+        function exportToCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "SR No,Warehouse,Item Code,Description,UOM,Location,SAP Qty,Physical Qty,Status,Remarks\n";
+
+            inventoryData.forEach((item) => {
+                let status = "Pending";
+                if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
+                    status = (item.physicalQty === item.sapQty) ? "Matched" : (item.physicalQty < item.sapQty ? "Shortage" : "Excess");
+                }
+                const row = [
+                    `"${item.srNo}"`,
+                    "Main Store",
+                    `"${item.itemNo}"`,
+                    `"${item.description.replace(/"/g, '""')}"`,
+                    `"${item.uom}"`,
+                    `"${item.location}"`,
+                    item.sapQty,
+                    item.physicalQty || 0,
+                    status,
+                    `"${(item.remarks || '').replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Main_Store_Stock_Report.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
