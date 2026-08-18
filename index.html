@@ -115,8 +115,13 @@
                         </tr>
                     </thead>
                     <tbody id="inventory-tbody" class="divide-y divide-slate-200">
-                        <tr>
-                            <td colspan="11" class="p-8 text-center text-slate-500" id="loading-status">Loading data...</td>
+                        <tr id="loading-row">
+                            <td colspan="11" class="py-16 px-4 text-center">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <img src="loader.gif" alt="Loading..." class="w-40 h-40 md:w-56 md:h-56 object-contain mx-auto">
+                                    <span class="text-sm md:text-base font-bold text-slate-700">Connecting...</span>
+                                </div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -127,10 +132,12 @@
 
     <script>
         const SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6Pt_NVgYwPkUbRueU64yj5yEE_QCvQyfJDmxBUsbFKbUfMnmRHdyXckSAt3RGvEYUmw/exec';
+        const GOOGLE_DRIVE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1XJ202iJ5mZ37I0mO1q3Q6S552504261787044458290/export?format=csv';
 
         let inventoryData = [];
         let filteredData = [];
         let showMismatchOnly = false;
+        let isLoading = true;
         
         let revealedItems = {};
         let selectedRowId = null;
@@ -140,8 +147,8 @@
         };
 
         async function loadSheetData() {
-            const loadingEl = document.getElementById('loading-status');
-            if (loadingEl) loadingEl.innerText = "Connecting to Google Sheet...";
+            isLoading = true;
+            showLoadingState();
 
             try {
                 const res = await fetch(SCRIPT_WEB_APP_URL);
@@ -161,14 +168,28 @@
                     };
                 }).filter(item => item.itemNo !== '' && item.itemNo !== 'Item No.');
 
+                isLoading = false;
                 filterData();
                 updateStats();
             } catch (err) {
                 console.error(err);
-                if (loadingEl) {
-                    loadingEl.innerHTML = `<span class="text-red-500 font-semibold">Connection failed!</span>`;
-                }
+                isLoading = false;
+                const tbody = document.getElementById('inventory-tbody');
+                tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-red-500 font-semibold">Connection failed! Please reload the page.</td></tr>`;
             }
+        }
+
+        function showLoadingState() {
+            const tbody = document.getElementById('inventory-tbody');
+            tbody.innerHTML = `
+                <tr id="loading-row">
+                    <td colspan="11" class="py-16 px-4 text-center">
+                        <div class="flex flex-col items-center justify-center gap-3">
+                            <img src="loader.gif" alt="Loading..." class="w-40 h-40 md:w-56 md:h-56 object-contain mx-auto">
+                            <span class="text-sm md:text-base font-bold text-slate-700">Connecting...</span>
+                        </div>
+                    </td>
+                </tr>`;
         }
 
         function toggleReveal(id) {
@@ -177,6 +198,8 @@
         }
 
         function renderTable() {
+            if (isLoading) return;
+
             const tbody = document.getElementById('inventory-tbody');
             const searchType = document.getElementById('search-type').value;
             tbody.innerHTML = '';
@@ -405,36 +428,7 @@
         }
 
         function exportToCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "SR No,Warehouse,Item Code,Description,UOM,Location,SAP Qty,Physical Qty,Status,Remarks\n";
-
-            inventoryData.forEach((item) => {
-                let status = "Pending";
-                if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
-                    status = (item.physicalQty === item.sapQty) ? "Matched" : (item.physicalQty < item.sapQty ? "Shortage" : "Excess");
-                }
-                const row = [
-                    `"${item.srNo}"`,
-                    "Main Store",
-                    `"${item.itemNo}"`,
-                    `"${item.description.replace(/"/g, '""')}"`,
-                    `"${item.uom}"`,
-                    `"${item.location}"`,
-                    item.sapQty,
-                    item.physicalQty || 0,
-                    status,
-                    `"${(item.remarks || '').replace(/"/g, '""')}"`
-                ];
-                csvContent += row.join(",") + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Main_Store_Stock_Report.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            window.open(GOOGLE_DRIVE_CSV_URL, '_blank');
         }
     </script>
 </body>
