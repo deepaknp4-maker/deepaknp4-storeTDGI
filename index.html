@@ -299,7 +299,7 @@
                     <td class="p-3 text-slate-500 whitespace-nowrap">${item.uom}</td>
                     <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs border border-slate-200 whitespace-nowrap">${item.location || 'Main Store'}</span></td>
                     <td class="p-3 text-right font-semibold text-blue-700">${item.sapQty}</td>
-                    <td class="p-3 text-right font-semibold text-slate-700">${displayPhysicalQty}</td>
+                    <td class="p-3 text-right font-semibold text-slate-700" style="background-color: yellow;">${displayPhysicalQty}</td>
                     <td class="p-3 text-center">${statusBadge}</td>
                     <td class="p-3">
                         <input type="text" value="${item.remarks}" oninput="updateItemField(${item.id}, 'remarks', this.value)" placeholder="Remarks..." class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
