@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Store - Inventory Management</title>
+    <title>Store, Sample & Tools Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .status-matched { background-color: #d1fae5; color: #065f46; }
@@ -31,142 +31,490 @@
             font-weight: normal;
         }
 
-        /* Row Highlight ചെയ്യാനുള്ള Style */
         .selected-row {
-            background-color: #fef08a !important; /* മഞ്ഞ നിറത്തിൽ Highlight ആവാൻ */
+            background-color: #fef08a !important;
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 md:p-8 font-sans">
+<body class="bg-slate-100 min-h-screen p-3 md:p-6 font-sans">
 
-    <div class="max-w-7xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-5">
         
-        <!-- Header -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800">Inventory Management System</h1>
-                <div class="mt-2 inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-lg font-semibold text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5m-4 0h4"></path></svg>
-                    Warehouse: Main Store
+        <!-- Top Persistent Navigation Bar -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-lg font-bold text-lg shadow-sm">🏬</div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-800">Store & Operations Hub</h1>
+                    <p class="text-xs text-slate-500">Inventory, Sample Tracking & Calibration Tools</p>
                 </div>
             </div>
-            
-            <div class="flex flex-wrap gap-3">
-                <button onclick="loadSheetData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
-                    🔄 Reload
+
+            <!-- Navigation Modules -->
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+                <button onclick="switchModule('inventory')" id="nav-inventory" class="flex-1 lg:flex-none px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow-sm">
+                    📦 Inventory
                 </button>
-                <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
-                    📥 Export CSV
+                <button onclick="switchModule('samples')" id="nav-samples" class="flex-1 lg:flex-none px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    🧪 Sample Tracking
+                    <span id="badge-pending-samples" class="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
+                </button>
+                <button onclick="switchModule('tools')" id="nav-tools" class="flex-1 lg:flex-none px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    🛠️ Tools Tracking
+                    <span id="badge-pending-tools" class="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
             </div>
         </div>
 
-        <!-- Metrics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div onclick="resetFilters()" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300 transition">
-                <p class="text-xs font-semibold text-slate-500 uppercase">Total Items</p>
-                <p id="stat-total-items" class="text-3xl font-bold text-slate-800 mt-1">0</p>
-            </div>
-            
-            <div onclick="toggleMismatchFilter()" id="mismatch-card" class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm cursor-pointer hover:bg-amber-50/50 transition">
-                <div class="flex justify-between items-center">
-                    <p class="text-xs font-semibold text-amber-700 uppercase">Discrepancies / Mismatch Items</p>
-                    <span id="mismatch-badge" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium hidden">Active Filter</span>
+        <!-- =================================================================== -->
+        <!-- MODULE 1: INVENTORY MANAGEMENT (MAIN STORE / QF)                    -->
+        <!-- =================================================================== -->
+        <div id="module-inventory" class="space-y-5">
+            <!-- Sub-Header & Toggle -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div id="warehouse-badge" class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-semibold text-sm transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 v5m-4 0h4"></path></svg>
+                        <span id="warehouse-label">Warehouse: Main Store</span>
+                    </div>
+
+                    <!-- Main Store / QF Toggle Switch -->
+                    <div class="inline-flex items-center gap-3 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-lg">
+                        <span id="label-main" class="text-xs font-bold text-blue-700">Main Store</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="store-toggle" onchange="toggleStoreMode()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-blue-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                        <span id="label-qf" class="text-xs font-semibold text-slate-400">QF</span>
+                    </div>
                 </div>
-                <p id="stat-discrepancy" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+                
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="loadInventoryData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
+                        🔄 Reload
+                    </button>
+                    <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition flex items-center gap-2">
+                        📥 Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div onclick="resetFilters()" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:border-slate-300 transition">
+                    <p class="text-xs font-semibold text-slate-500 uppercase">Total Items (<span id="card-store-name">Main Store</span>)</p>
+                    <p id="stat-total-items" class="text-3xl font-bold text-slate-800 mt-1">0</p>
+                </div>
+                
+                <div onclick="toggleMismatchFilter()" id="mismatch-card" class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm cursor-pointer hover:bg-amber-50/50 transition">
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs font-semibold text-amber-700 uppercase">Discrepancies / Mismatch Items</p>
+                        <span id="mismatch-badge" class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-medium hidden">Active Filter</span>
+                    </div>
+                    <p id="stat-discrepancy" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+                </div>
+            </div>
+
+            <!-- Search Controls -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
+                <div class="w-full md:w-52">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search By</label>
+                    <select id="search-type" onchange="filterData()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="all">🌐 All Fields</option>
+                        <option value="srNo">SR No:</option>
+                        <option value="itemNo">Item Code (Item No)</option>
+                        <option value="description">Description</option>
+                    </select>
+                </div>
+
+                <div class="flex-1 w-full">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Keyword (<span id="search-store-hint">Main Store</span>)</label>
+                    <input type="text" id="search-input" oninput="filterData()" placeholder="Type SR No, Item Code or Description..." class="w-full border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <!-- Inventory Table View -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto max-h-[600px]">
+                    <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                        <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 border-b border-slate-200 z-10">
+                            <tr>
+                                <th class="p-3 w-12 text-center">Sl No</th>
+                                <th class="p-3 w-20">SR No</th>
+                                <th id="th-itemNo" class="p-3 w-40">Item Code</th>
+                                <th id="th-description" class="p-3 w-64">Description</th>
+                                <th class="p-3 w-20">UOM</th>
+                                <th class="p-3 w-28">Location</th>
+                                <th class="p-3 w-20 text-right">SAP Qty</th>
+                                <th class="p-3 w-24 text-right">Available Stock</th>
+                                <th class="p-3 w-24 text-center">Status</th>
+                                <th class="p-3 w-48">Remarks</th>
+                                <th class="p-3 w-24 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-tbody" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="11" class="py-16 px-6 text-left">
+                                    <div class="flex flex-col items-start justify-start gap-3">
+                                        <img src="loader.gif" alt="Loading..." class="w-40 h-40 md:w-56 md:h-56 object-contain">
+                                        <span class="text-sm md:text-base font-bold text-slate-700">Connecting...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Search Controls -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-            <div class="w-full md:w-52">
-                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search By</label>
-                <select id="search-type" onchange="filterData()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <option value="all">🌐 All Fields</option>
-                    <option value="srNo">SR No:</option>
-                    <option value="itemNo">Item Code (Item No)</option>
-                    <option value="description">Description</option>
-                </select>
+        <!-- =================================================================== -->
+        <!-- MODULE 2: SAMPLE TRACKING (ISSUE & PENDING RETURNS)                 -->
+        <!-- =================================================================== -->
+        <div id="module-samples" class="hidden space-y-6">
+            <!-- Sample Issue Entry Form -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">🧪 Issue New Sample Item</h2>
+                        <p class="text-xs text-slate-500">Main Stock will NOT be deducted. Records directly to Sample_Logs.</p>
+                    </div>
+                    <button onclick="loadSampleLogs()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">🔄 Refresh Logs</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- 1. Source Store -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">1. Source Store *</label>
+                        <select id="sample-source-store" onchange="handleSampleSourceChange()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="Main Store">Main Store</option>
+                            <option value="QF">QF (Qatar Foundation)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Search & Choose Item -->
+                    <div class="md:col-span-2 relative">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Search Item (SR No, Item Code or Description) *</label>
+                        <input type="text" id="sample-item-search" oninput="searchSampleCatalog()" onfocus="searchSampleCatalog()" placeholder="Type SR No (e.g. 515) or Item Name to select..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        
+                        <!-- Search Dropdown Results -->
+                        <div id="sample-search-dropdown" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
+                    </div>
+                </div>
+
+                <!-- Selected Item Preview Box -->
+                <div id="sample-selected-box" class="hidden bg-blue-50 border border-blue-200 p-3 rounded-lg flex flex-wrap justify-between items-center gap-2 text-sm">
+                    <div>
+                        <span class="text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded mr-2" id="sel-sample-sr">SR: -</span>
+                        <span class="font-bold text-slate-800" id="sel-sample-code">-</span>
+                        <p class="text-slate-700 text-xs mt-1" id="sel-sample-desc">-</p>
+                    </div>
+                    <button onclick="clearSelectedSampleItem()" class="text-xs text-red-600 hover:underline font-semibold">✕ Clear</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Sample Qty *</label>
+                        <input type="number" id="sample-qty" value="1" min="0.1" step="any" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Taken By (Name) *</label>
+                        <input type="text" id="sample-taken-by" placeholder="Person Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">5. To Project *</label>
+                        <input type="text" id="sample-to-project" placeholder="Destination Project..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <button id="btn-submit-sample" onclick="submitSampleIssue()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-sm transition">
+                            ➕ Submit Sample Issue
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="flex-1 w-full">
-                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Keyword</label>
-                <input type="text" id="search-input" oninput="filterData()" placeholder="Type SR No, Item Code or Description..." class="w-full border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <!-- Pending Samples List (Only Unreturned Items Shown) -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns (തിരികെ ലഭിക്കാനുള്ളവ)</h3>
+                        <p class="text-xs text-amber-700">Returned items are automatically hidden from this list and logged in Excel.</p>
+                    </div>
+                    <span id="pending-samples-count" class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Pending</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                        <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Issue Date</th>
+                                <th class="p-3">Source Store</th>
+                                <th class="p-3">SR No / Item Code</th>
+                                <th class="p-3">Description</th>
+                                <th class="p-3 text-center">Qty</th>
+                                <th class="p-3">Taken By</th>
+                                <th class="p-3">To Project</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sample-pending-tbody" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="8" class="py-10 px-6 text-left">
+                                    <div class="flex flex-col items-start gap-2">
+                                        <img src="loader.gif" alt="Loading..." class="w-32 h-32 object-contain">
+                                        <span class="text-sm font-bold text-slate-700">Loading Sample Logs...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Table View -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="overflow-x-auto max-h-[600px]">
-                <table class="w-full text-left text-sm text-slate-600 border-collapse">
-                    <thead class="bg-slate-50 text-slate-700 font-semibold sticky top-0 border-b border-slate-200 z-10">
-                        <tr>
-                            <th class="p-3 w-12 text-center">Sl No</th>
-                            <th class="p-3 w-20">SR No</th>
-                            <th id="th-itemNo" class="p-3 w-40">Item Code</th>
-                            <th id="th-description" class="p-3 w-64">Description</th>
-                            <th class="p-3 w-20">UOM</th>
-                            <th class="p-3 w-28">Location</th>
-                            <th class="p-3 w-20 text-right">SAP Qty</th>
-                            <th class="p-3 w-24 text-right">Available Stock</th>
-                            <th class="p-3 w-24 text-center">Status</th>
-                            <th class="p-3 w-48">Remarks</th>
-                            <th class="p-3 w-24 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventory-tbody" class="divide-y divide-slate-200">
-                        <tr id="loading-row">
-                            <td colspan="11" class="py-16 px-6 text-left">
-                                <div class="flex flex-col items-start justify-start gap-3">
-                                    <img src="loader.gif" alt="Loading..." class="w-40 h-40 md:w-56 md:h-56 object-contain">
-                                    <span class="text-sm md:text-base font-bold text-slate-700">Connecting...</span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- =================================================================== -->
+        <!-- MODULE 3: TOOLS TRACKING (TOOLS_MASTER & TOOLS_LOGS)                -->
+        <!-- =================================================================== -->
+        <div id="module-tools" class="hidden space-y-6">
+            <!-- Tool Issue Form -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800">🛠️ Issue Tool / Calibration Equipment</h2>
+                        <p class="text-xs text-slate-500">Select tool from Tools_Master and record who is taking it.</p>
+                    </div>
+                    <button onclick="loadToolsData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">🔄 Refresh Tools</button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Search Tool -->
+                    <div class="relative">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">1. Search Tool (Name, Serial No or Code) *</label>
+                        <input type="text" id="tool-search-input" oninput="searchToolsCatalog()" onfocus="searchToolsCatalog()" placeholder="Type Temperature Meter, Pressure Gauge, Serial No..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <div id="tool-search-dropdown" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
+                    </div>
+
+                    <!-- Selected Tool Details Preview -->
+                    <div id="tool-selected-box" class="bg-slate-50 border border-slate-200 p-3 rounded-lg flex flex-col justify-center">
+                        <span class="text-xs text-slate-400">No tool selected yet. Search and click a tool from the list.</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Taken By (Person Name) *</label>
+                        <input type="text" id="tool-taken-by" placeholder="Technician / Engineer Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Details (Project / Phone / Notes) *</label>
+                        <input type="text" id="tool-details" placeholder="Project name, mobile no, etc..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <button id="btn-submit-tool" onclick="submitToolIssue()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-sm transition">
+                            ➕ Issue Tool
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Tools List -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return (തിരികെ ലഭിക്കാനുള്ള ടൂൾസ്)</h3>
+                        <p class="text-xs text-rose-700">Click Return once the tool is back in store. Returned items hide automatically.</p>
+                    </div>
+                    <span id="pending-tools-count" class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Issued</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600 border-collapse">
+                        <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">Tool Name</th>
+                                <th class="p-3">Serial No</th>
+                                <th class="p-3">Product/Item Code</th>
+                                <th class="p-3">Expiry Date</th>
+                                <th class="p-3">Taken By</th>
+                                <th class="p-3">Details / Issued</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tools-pending-tbody" class="divide-y divide-slate-200">
+                            <tr>
+                                <td colspan="7" class="py-10 px-6 text-left">
+                                    <div class="flex flex-col items-start gap-2">
+                                        <img src="loader.gif" alt="Loading..." class="w-32 h-32 object-contain">
+                                        <span class="text-sm font-bold text-slate-700">Loading Tools Logs...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
     </div>
 
     <script>
+        // നിങ്ങളുടെ Google Apps Script Web App URL ഇവിടെ നൽകുക
         const SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6Pt_NVgYwPkUbRueU64yj5yEE_QCvQyfJDmxBUsbFKbUfMnmRHdyXckSAt3RGvEYUmw/exec';
         const GOOGLE_DRIVE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1XJ202iJ5mZ37I0mO1q3Q6S552504261787044458290/export?format=csv';
 
+        // Global State
         let inventoryData = [];
         let filteredData = [];
+        let mainStoreCatalog = [];
+        let qfCatalog = [];
+        let sampleLogs = [];
+        let toolsMaster = [];
+        let toolsLogs = [];
+
         let showMismatchOnly = false;
         let isLoading = true;
+        let currentSheet = 'Main Store'; // Toggle OFF = Main Store, Toggle ON = QF
         
         let revealedItems = {};
         let selectedRowId = null;
 
+        let selectedSampleItem = null;
+        let selectedToolItem = null;
+
         window.onload = function() {
-            loadSheetData();
+            loadInventoryData();
+            preloadAllCatalogs();
         };
 
-        async function loadSheetData() {
+        // =====================================================================
+        // MODULE NAVIGATION
+        // =====================================================================
+        function switchModule(moduleName) {
+            document.getElementById('module-inventory').classList.add('hidden');
+            document.getElementById('module-samples').classList.add('hidden');
+            document.getElementById('module-tools').classList.add('hidden');
+
+            const navIds = ['nav-inventory', 'nav-samples', 'nav-tools'];
+            navIds.forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = "flex-1 lg:flex-none px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200";
+            });
+
+            document.getElementById(`module-${moduleName}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${moduleName}`);
+            activeBtn.className = "flex-1 lg:flex-none px-4 py-2.5 rounded-lg font-semibold text-sm transition flex items-center justify-center gap-2 bg-blue-600 text-white shadow-sm";
+
+            if (moduleName === 'samples') {
+                loadSampleLogs();
+            } else if (moduleName === 'tools') {
+                loadToolsData();
+            }
+        }
+
+        async function preloadAllCatalogs() {
+            try {
+                // Background fetch for Sample dropdown & badges
+                const [resMain, resQF, resSamples, resToolsMaster, resToolsLogs] = await Promise.all([
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Main Store')}`).then(r => r.json()).catch(() => []),
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('QF')}`).then(r => r.json()).catch(() => []),
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Sample_Logs')}`).then(r => r.json()).catch(() => []),
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Tools_Master')}`).then(r => r.json()).catch(() => []),
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Tools_Logs')}`).then(r => r.json()).catch(() => [])
+                ]);
+
+                mainStoreCatalog = normalizeInventoryRows(resMain);
+                qfCatalog = normalizeInventoryRows(resQF);
+                sampleLogs = resSamples || [];
+                toolsMaster = resToolsMaster || [];
+                toolsLogs = resToolsLogs || [];
+
+                updateNavBadges();
+            } catch (e) {
+                console.error("Background preload error:", e);
+            }
+        }
+
+        function updateNavBadges() {
+            const pendingSamples = sampleLogs.filter(r => (r['Status'] || '').toString().trim().toLowerCase() !== 'returned');
+            const sampleBadge = document.getElementById('badge-pending-samples');
+            if (pendingSamples.length > 0) {
+                sampleBadge.textContent = pendingSamples.length;
+                sampleBadge.classList.remove('hidden');
+            } else {
+                sampleBadge.classList.add('hidden');
+            }
+
+            const pendingTools = toolsLogs.filter(r => !r['Return Date'] || r['Return Date'].toString().trim() === '');
+            const toolsBadge = document.getElementById('badge-pending-tools');
+            if (pendingTools.length > 0) {
+                toolsBadge.textContent = pendingTools.length;
+                toolsBadge.classList.remove('hidden');
+            } else {
+                toolsBadge.classList.add('hidden');
+            }
+        }
+
+        function normalizeInventoryRows(rawData) {
+            if (!Array.isArray(rawData)) return [];
+            return rawData.map((row, index) => ({
+                id: index,
+                srNo: row['SR No:'] || row['SR No'] || '',
+                itemNo: row['Item No.'] || row['Item No'] || '',
+                description: row['Dscription'] || row['Description'] || '',
+                uom: row['UOM Code'] || row['UOM'] || 'Pcs',
+                sapQty: parseFloat(row['CumulativeQty']) || parseFloat(row['SAP Qty']) || 0,
+                physicalQty: row['Physical Stock'] !== undefined && row['Physical Stock'] !== '' ? parseFloat(row['Physical Stock']) : '',
+                location: row['Location'] || '',
+                remarks: row['Remarks'] || ''
+            })).filter(item => item.itemNo !== '' && item.itemNo !== 'Item No.');
+        }
+
+        // =====================================================================
+        // MODULE 1: INVENTORY LOGIC
+        // =====================================================================
+        function toggleStoreMode() {
+            const isQF = document.getElementById('store-toggle').checked;
+            currentSheet = isQF ? 'QF' : 'Main Store';
+
+            const badge = document.getElementById('warehouse-badge');
+            const label = document.getElementById('warehouse-label');
+            const labelMain = document.getElementById('label-main');
+            const labelQF = document.getElementById('label-qf');
+            const cardStoreName = document.getElementById('card-store-name');
+            const searchStoreHint = document.getElementById('search-store-hint');
+
+            if (isQF) {
+                badge.className = "inline-flex items-center gap-2 bg-purple-50 border border-purple-200 text-purple-700 px-3 py-1.5 rounded-lg font-semibold text-sm transition-colors";
+                label.textContent = "Warehouse: QF";
+                labelMain.className = "text-xs font-semibold text-slate-400";
+                labelQF.className = "text-xs font-bold text-purple-700";
+                cardStoreName.textContent = "QF";
+                searchStoreHint.textContent = "QF";
+            } else {
+                badge.className = "inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1.5 rounded-lg font-semibold text-sm transition-colors";
+                label.textContent = "Warehouse: Main Store";
+                labelMain.className = "text-xs font-bold text-blue-700";
+                labelQF.className = "text-xs font-semibold text-slate-400";
+                cardStoreName.textContent = "Main Store";
+                searchStoreHint.textContent = "Main Store";
+            }
+
+            revealedItems = {};
+            selectedRowId = null;
+            loadInventoryData();
+        }
+
+        async function loadInventoryData() {
             isLoading = true;
             showLoadingState();
 
             try {
-                const res = await fetch(SCRIPT_WEB_APP_URL);
+                const fetchUrl = `${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent(currentSheet)}`;
+                const res = await fetch(fetchUrl);
                 const rawData = await res.json();
 
-                inventoryData = rawData.map((row, index) => {
-                    return {
-                        id: index,
-                        srNo: row['SR No:'] || row['SR No'] || '',
-                        itemNo: row['Item No.'] || row['Item No'] || '',
-                        description: row['Dscription'] || row['Description'] || '',
-                        uom: row['UOM Code'] || row['UOM'] || 'Pcs',
-                        sapQty: parseFloat(row['CumulativeQty']) || parseFloat(row['SAP Qty']) || 0,
-                        physicalQty: row['Physical Stock'] !== undefined && row['Physical Stock'] !== '' ? parseFloat(row['Physical Stock']) : '',
-                        location: row['Location'] || '',
-                        remarks: row['Remarks'] || ''
-                    };
-                }).filter(item => item.itemNo !== '' && item.itemNo !== 'Item No.');
+                inventoryData = normalizeInventoryRows(rawData);
+                if (currentSheet === 'Main Store') mainStoreCatalog = inventoryData;
+                if (currentSheet === 'QF') qfCatalog = inventoryData;
 
                 isLoading = false;
                 filterData();
@@ -182,11 +530,11 @@
         function showLoadingState() {
             const tbody = document.getElementById('inventory-tbody');
             tbody.innerHTML = `
-                <tr id="loading-row">
+                <tr>
                     <td colspan="11" class="py-16 px-6 text-left">
                         <div class="flex flex-col items-start justify-start gap-3">
                             <img src="loader.gif" alt="Loading..." class="w-40 h-40 md:w-56 md:h-56 object-contain">
-                            <span class="text-sm md:text-base font-bold text-slate-700">Connecting...</span>
+                            <span class="text-sm md:text-base font-bold text-slate-700">Connecting to ${currentSheet}...</span>
                         </div>
                     </td>
                 </tr>`;
@@ -220,12 +568,7 @@
 
             filteredData.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                
-                if (selectedRowId === item.id) {
-                    tr.className = "selected-row transition cursor-pointer";
-                } else {
-                    tr.className = "hover:bg-slate-50 transition cursor-pointer";
-                }
+                tr.className = (selectedRowId === item.id) ? "selected-row transition cursor-pointer" : "hover:bg-slate-50 transition cursor-pointer";
 
                 tr.onclick = function(e) {
                     if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('.clickable-cell') || e.target.closest('a')) {
@@ -249,7 +592,6 @@
                 }
 
                 let isRevealed = !!revealedItems[item.id];
-                // Google Images Search Link
                 let googleImageSearchUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(item.description)}`;
 
                 let itemNoCell = '';
@@ -297,9 +639,9 @@
                     ${itemNoCell}
                     ${descCell}
                     <td class="p-3 text-slate-500 whitespace-nowrap">${item.uom}</td>
-                    <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs border border-slate-200 whitespace-nowrap">${item.location || 'Main Store'}</span></td>
+                    <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-xs border border-slate-200 whitespace-nowrap">${item.location || currentSheet}</span></td>
                     <td class="p-3 text-right font-semibold text-blue-700">${item.sapQty}</td>
-                    <td class="p-3 text-right font-semibold text-slate-700" style="background-color: yellow;">${displayPhysicalQty}</td>
+                    <td class="p-3 text-right font-semibold text-slate-700">${displayPhysicalQty}</td>
                     <td class="p-3 text-center">${statusBadge}</td>
                     <td class="p-3">
                         <input type="text" value="${item.remarks}" oninput="updateItemField(${item.id}, 'remarks', this.value)" placeholder="Remarks..." class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -316,17 +658,13 @@
 
         function updateItemField(id, field, value) {
             const item = inventoryData.find(i => i.id === id);
-            if (item) {
-                item[field] = value;
-            }
+            if (item) item[field] = value;
         }
 
         function toggleMismatchFilter() {
             showMismatchOnly = !showMismatchOnly;
-            
             const card = document.getElementById('mismatch-card');
             const badge = document.getElementById('mismatch-badge');
-            
             if (showMismatchOnly) {
                 card.classList.add('ring-2', 'ring-amber-500', 'bg-amber-50');
                 badge.classList.remove('hidden');
@@ -334,7 +672,6 @@
                 card.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50');
                 badge.classList.add('hidden');
             }
-            
             filterData();
         }
 
@@ -355,7 +692,6 @@
 
             filteredData = inventoryData.filter(item => {
                 let matchesSearch = false;
-
                 if (!query) {
                     matchesSearch = true;
                 } else if (searchType === 'srNo') {
@@ -378,7 +714,6 @@
                 return matchesSearch && (!showMismatchOnly || isMismatch);
             });
 
-            // SR No അക്ഷരങ്ങളും അക്കങ്ങളും അനുസരിച്ച് Ascending Order-ൽ Sort ചെയ്യുന്നത്
             filteredData.sort((a, b) => {
                 const strA = (a.srNo || '').toString();
                 const strB = (b.srNo || '').toString();
@@ -390,13 +725,11 @@
 
         function updateStats() {
             let discrepancies = 0;
-
             inventoryData.forEach(item => {
                 if (item.physicalQty !== '' && !isNaN(item.physicalQty)) {
                     if (item.physicalQty !== item.sapQty) discrepancies++;
                 }
             });
-
             document.getElementById('stat-total-items').textContent = inventoryData.length;
             document.getElementById('stat-discrepancy').textContent = discrepancies;
         }
@@ -406,7 +739,7 @@
             if (!item) return;
 
             const btn = document.getElementById(`btn-${id}`);
-            if(btn) {
+            if (btn) {
                 btn.innerText = "Saving...";
                 btn.disabled = true;
                 btn.className = "bg-amber-500 text-white text-xs px-3 py-1 rounded font-medium shadow-sm cursor-not-allowed";
@@ -418,12 +751,14 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        action: 'updateRemarks',
+                        sheet: currentSheet,
                         itemNo: item.itemNo,
                         remarks: item.remarks
                     })
                 });
 
-                if(btn) {
+                if (btn) {
                     btn.innerText = "Saved ✓";
                     btn.className = "bg-emerald-600 text-white text-xs px-3 py-1 rounded font-medium shadow-sm";
                     setTimeout(() => {
@@ -434,7 +769,7 @@
                 }
             } catch (e) {
                 alert("Google Sheet-ilekk update cheyyaan kazhinjilla!");
-                if(btn) {
+                if (btn) {
                     btn.innerText = "Submit";
                     btn.disabled = false;
                     btn.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded font-medium shadow-sm transition";
@@ -445,6 +780,452 @@
         function exportToCSV() {
             window.open(GOOGLE_DRIVE_CSV_URL, '_blank');
         }
+
+        // =====================================================================
+        // MODULE 2: SAMPLE TRACKING LOGIC
+        // =====================================================================
+        function handleSampleSourceChange() {
+            clearSelectedSampleItem();
+            document.getElementById('sample-item-search').value = '';
+            document.getElementById('sample-search-dropdown').classList.add('hidden');
+        }
+
+        function searchSampleCatalog() {
+            const source = document.getElementById('sample-source-store').value;
+            const query = document.getElementById('sample-item-search').value.toLowerCase().trim();
+            const dropdown = document.getElementById('sample-search-dropdown');
+
+            const catalog = (source === 'QF') ? qfCatalog : mainStoreCatalog;
+            if (!query) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            const matches = catalog.filter(item =>
+                item.srNo.toString().toLowerCase().includes(query) ||
+                item.itemNo.toLowerCase().includes(query) ||
+                item.description.toLowerCase().includes(query)
+            ).slice(0, 20);
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500">No items found in ${source}.</div>`;
+            } else {
+                dropdown.innerHTML = matches.map((item, idx) => `
+                    <div onclick='selectSampleItem(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="p-2.5 hover:bg-blue-50 cursor-pointer flex justify-between items-center gap-2">
+                        <div>
+                            <span class="text-xs font-mono font-bold text-blue-700">SR: ${item.srNo || '-'}</span>
+                            <span class="text-xs font-semibold text-slate-800 ml-2">${item.itemNo}</span>
+                            <p class="text-xs text-slate-600 truncate max-w-md">${item.description}</p>
+                        </div>
+                        <span class="text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 whitespace-nowrap">${item.uom}</span>
+                    </div>
+                `).join('');
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectSampleItem(item) {
+            selectedSampleItem = item;
+            document.getElementById('sample-search-dropdown').classList.add('hidden');
+            document.getElementById('sample-item-search').value = `${item.srNo ? 'SR ' + item.srNo + ' - ' : ''}${item.itemNo}`;
+
+            document.getElementById('sel-sample-sr').textContent = `SR: ${item.srNo || '-'}`;
+            document.getElementById('sel-sample-code').textContent = `${item.itemNo} (${item.uom})`;
+            document.getElementById('sel-sample-desc').textContent = item.description;
+            document.getElementById('sample-selected-box').classList.remove('hidden');
+        }
+
+        function clearSelectedSampleItem() {
+            selectedSampleItem = null;
+            document.getElementById('sample-selected-box').classList.add('hidden');
+        }
+
+        async function loadSampleLogs() {
+            const tbody = document.getElementById('sample-pending-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="py-10 px-6 text-left">
+                        <div class="flex flex-col items-start gap-2">
+                            <img src="loader.gif" alt="Loading..." class="w-32 h-32 object-contain">
+                            <span class="text-sm font-bold text-slate-700">Loading Sample Logs...</span>
+                        </div>
+                    </td>
+                </tr>`;
+
+            try {
+                const res = await fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Sample_Logs')}`);
+                sampleLogs = await res.json();
+                renderSamplePendingTable();
+                updateNavBadges();
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-red-500 font-semibold">Failed to load Sample_Logs.</td></tr>`;
+            }
+        }
+
+        function renderSamplePendingTable() {
+            const tbody = document.getElementById('sample-pending-tbody');
+            // തിരികെ ലഭിക്കാത്തവ (Pending) മാത്രം കാണിക്കുന്നു
+            const pendingList = sampleLogs.filter(row => {
+                const status = (row['Status'] || '').toString().trim().toLowerCase();
+                return row['Sample ID'] && status !== 'returned';
+            });
+
+            document.getElementById('pending-samples-count').textContent = `${pendingList.length} Pending`;
+
+            if (pendingList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">🎉 No pending samples! All sample items have been returned.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pendingList.map(row => {
+                const sampleId = row['Sample ID'];
+                const source = row['Source Store'] || '-';
+                const badgeColor = source === 'QF' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800';
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-xs font-mono text-slate-600 whitespace-nowrap">${row['Issue Date'] || '-'}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${badgeColor}">${source}</span></td>
+                        <td class="p-3">
+                            <div class="text-xs font-bold text-slate-800">${row['Item Code'] || row['Item No.'] || '-'}</div>
+                            <div class="text-[11px] text-slate-500">SR: ${row['SR No:'] || row['SR No'] || '-'}</div>
+                        </td>
+                        <td class="p-3 text-slate-700 text-xs">${row['Dscription'] || row['Description'] || '-'}</td>
+                        <td class="p-3 text-center font-bold text-slate-800">${row['Sample Qty'] || 1} <span class="text-xs font-normal text-slate-500">${row['UOM Code'] || ''}</span></td>
+                        <td class="p-3 font-semibold text-slate-800">${row['Taken By'] || '-'}</td>
+                        <td class="p-3 font-medium text-indigo-700">${row['To Project'] || '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="returnSampleItem('${sampleId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                ✓ Return
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function submitSampleIssue() {
+            if (!selectedSampleItem) {
+                alert("ദയവായി ലിസ്റ്റിൽ നിന്ന് ഒരു ഐറ്റം സെലക്ട് ചെയ്യുക!");
+                return;
+            }
+            const sourceStore = document.getElementById('sample-source-store').value;
+            const sampleQty = document.getElementById('sample-qty').value;
+            const takenBy = document.getElementById('sample-taken-by').value.trim();
+            const toProject = document.getElementById('sample-to-project').value.trim();
+
+            if (!takenBy || !toProject || !sampleQty) {
+                alert("ദയവായി Qty, Taken By, To Project എന്നിവയെല്ലാം പൂരിപ്പിക്കുക!");
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-sample');
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+
+            const sampleId = "SMP-" + Date.now().toString().slice(-6);
+            const nowStr = new Date().toLocaleString();
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addSample',
+                        sampleId: sampleId,
+                        itemNo: selectedSampleItem.itemNo,
+                        srNo: selectedSampleItem.srNo,
+                        description: selectedSampleItem.description,
+                        uom: selectedSampleItem.uom,
+                        sourceStore: sourceStore,
+                        sampleQty: sampleQty,
+                        takenBy: takenBy,
+                        toProject: toProject
+                    })
+                });
+
+                // Optimistic UI update
+                sampleLogs.unshift({
+                    'Sample ID': sampleId,
+                    'Item No.': selectedSampleItem.itemNo,
+                    'SR No:': selectedSampleItem.srNo,
+                    'Dscription': selectedSampleItem.description,
+                    'UOM Code': selectedSampleItem.uom,
+                    'Source Store': sourceStore,
+                    'Sample Qty': sampleQty,
+                    'Taken By': takenBy,
+                    'To Project': toProject,
+                    'Issue Date': nowStr,
+                    'Status': 'Pending',
+                    'Return Date': ''
+                });
+
+                renderSamplePendingTable();
+                updateNavBadges();
+
+                // Reset form
+                clearSelectedSampleItem();
+                document.getElementById('sample-item-search').value = '';
+                document.getElementById('sample-qty').value = '1';
+                document.getElementById('sample-taken-by').value = '';
+                document.getElementById('sample-to-project').value = '';
+            } catch (e) {
+                alert("Error saving sample record!");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "➕ Submit Sample Issue";
+            }
+        }
+
+        async function returnSampleItem(sampleId) {
+            if (!confirm("ഈ സാമ്പിൾ സാധനം തിരികെ ലഭിച്ചതായി ഉറപ്പാണോ?")) return;
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'returnSample',
+                        sampleId: sampleId
+                    })
+                });
+
+                // Hide immediately from pending list
+                const target = sampleLogs.find(r => r['Sample ID'] === sampleId);
+                if (target) target['Status'] = 'Returned';
+
+                renderSamplePendingTable();
+                updateNavBadges();
+            } catch (e) {
+                alert("Return അപ്‌ഡേറ്റ് ചെയ്യാൻ സാധിച്ചില്ല!");
+            }
+        }
+
+        // =====================================================================
+        // MODULE 3: TOOLS TRACKING LOGIC
+        // =====================================================================
+        async function loadToolsData() {
+            const tbody = document.getElementById('tools-pending-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-10 px-6 text-left">
+                        <div class="flex flex-col items-start gap-2">
+                            <img src="loader.gif" alt="Loading..." class="w-32 h-32 object-contain">
+                            <span class="text-sm font-bold text-slate-700">Loading Tools Data...</span>
+                        </div>
+                    </td>
+                </tr>`;
+
+            try {
+                const [resMaster, resLogs] = await Promise.all([
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Tools_Master')}`).then(r => r.json()),
+                    fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Tools_Logs')}`).then(r => r.json())
+                ]);
+
+                toolsMaster = resMaster || [];
+                toolsLogs = resLogs || [];
+                renderToolsPendingTable();
+                updateNavBadges();
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-red-500 font-semibold">Failed to load Tools sheets.</td></tr>`;
+            }
+        }
+
+        function searchToolsCatalog() {
+            const query = document.getElementById('tool-search-input').value.toLowerCase().trim();
+            const dropdown = document.getElementById('tool-search-dropdown');
+
+            if (!query) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            const matches = toolsMaster.filter(t =>
+                (t['Tool Name'] || '').toString().toLowerCase().includes(query) ||
+                (t['Serial No'] || '').toString().toLowerCase().includes(query) ||
+                (t['Product/Item Code'] || '').toString().toLowerCase().includes(query)
+            ).slice(0, 20);
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500">No matching tools found in Tools_Master.</div>`;
+            } else {
+                dropdown.innerHTML = matches.map(tool => `
+                    <div onclick='selectToolItem(${JSON.stringify(tool).replace(/'/g, "&#39;")})' class="p-2.5 hover:bg-indigo-50 cursor-pointer flex justify-between items-center gap-2">
+                        <div>
+                            <div class="text-xs font-bold text-slate-800">${tool['Tool Name'] || '-'}</div>
+                            <div class="text-[11px] text-slate-500">S/N: ${tool['Serial No'] || '-'} | Code: ${tool['Product/Item Code'] || '-'}</div>
+                        </div>
+                        <span class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 rounded whitespace-nowrap">Exp: ${formatDateOnly(tool['Expiry Date'])}</span>
+                    </div>
+                `).join('');
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        function formatDateOnly(val) {
+            if (!val) return '-';
+            const str = val.toString();
+            return str.includes('T') ? str.split('T')[0] : str;
+        }
+
+        function selectToolItem(tool) {
+            selectedToolItem = tool;
+            document.getElementById('tool-search-dropdown').classList.add('hidden');
+            document.getElementById('tool-search-input').value = `${tool['Tool Name']} (${tool['Serial No'] || ''})`;
+
+            document.getElementById('tool-selected-box').innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-bold text-indigo-900 text-sm">${tool['Tool Name'] || '-'}</div>
+                        <div class="text-xs text-slate-600 mt-0.5">
+                            <span class="font-semibold">Serial No:</span> ${tool['Serial No'] || '-'} | 
+                            <span class="font-semibold">Code:</span> ${tool['Product/Item Code'] || '-'} | 
+                            <span class="font-semibold text-amber-700">Expiry:</span> ${formatDateOnly(tool['Expiry Date'])}
+                        </div>
+                    </div>
+                    <button onclick="clearSelectedTool()" class="text-xs text-red-600 hover:underline font-semibold">✕</button>
+                </div>
+            `;
+        }
+
+        function clearSelectedTool() {
+            selectedToolItem = null;
+            document.getElementById('tool-selected-box').innerHTML = `<span class="text-xs text-slate-400">No tool selected yet. Search and click a tool from the list.</span>`;
+        }
+
+        function renderToolsPendingTable() {
+            const tbody = document.getElementById('tools-pending-tbody');
+            // Return Date ഇല്ലാത്തവ (തിരികെ ലഭിക്കാത്ത ടൂളുകൾ) മാത്രം കാണിക്കുന്നു
+            const pendingTools = toolsLogs.filter(row => {
+                return row['Tool Log ID'] && (!row['Return Date'] || row['Return Date'].toString().trim() === '');
+            });
+
+            document.getElementById('pending-tools-count').textContent = `${pendingTools.length} Issued`;
+
+            if (pendingTools.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">🎉 All tools are currently in store! No pending returns.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = pendingTools.map(row => {
+                const logId = row['Tool Log ID'];
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-800">${row['Tool Name'] || '-'}</td>
+                        <td class="p-3 font-mono text-xs text-slate-700">${row['Serial No'] || '-'}</td>
+                        <td class="p-3 font-mono text-xs text-slate-600">${row['Product/Item Code'] || '-'}</td>
+                        <td class="p-3 text-xs text-amber-700 font-semibold">${formatDateOnly(row['Expiry Date'])}</td>
+                        <td class="p-3 font-semibold text-indigo-800">${row['Taken By'] || '-'}</td>
+                        <td class="p-3 text-xs text-slate-600">${row['Details'] || '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="returnToolItem('${logId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                ✓ Return
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function submitToolIssue() {
+            if (!selectedToolItem) {
+                alert("ദയവായി Tools_Master ലിസ്റ്റിൽ നിന്ന് ഒരു ടൂൾ സെലക്ട് ചെയ്യുക!");
+                return;
+            }
+            const takenBy = document.getElementById('tool-taken-by').value.trim();
+            const details = document.getElementById('tool-details').value.trim();
+
+            if (!takenBy || !details) {
+                alert("ദയവായി Taken By, Details എന്നിവ പൂരിപ്പിക്കുക!");
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-tool');
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+
+            const toolLogId = "TL-" + Date.now().toString().slice(-6);
+            const nowStr = new Date().toLocaleString();
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addToolLog',
+                        toolLogId: toolLogId,
+                        toolName: selectedToolItem['Tool Name'] || '',
+                        serialNo: selectedToolItem['Serial No'] || '',
+                        productCode: selectedToolItem['Product/Item Code'] || '',
+                        expiryDate: formatDateOnly(selectedToolItem['Expiry Date']),
+                        takenBy: takenBy,
+                        details: details
+                    })
+                });
+
+                toolsLogs.unshift({
+                    'Tool Log ID': toolLogId,
+                    'Tool Name': selectedToolItem['Tool Name'] || '',
+                    'Serial No': selectedToolItem['Serial No'] || '',
+                    'Product/Item Code': selectedToolItem['Product/Item Code'] || '',
+                    'Expiry Date': formatDateOnly(selectedToolItem['Expiry Date']),
+                    'Taken By': takenBy,
+                    'Details': `${details} (Issued: ${nowStr})`,
+                    'Return Date': ''
+                });
+
+                renderToolsPendingTable();
+                updateNavBadges();
+
+                clearSelectedTool();
+                document.getElementById('tool-search-input').value = '';
+                document.getElementById('tool-taken-by').value = '';
+                document.getElementById('tool-details').value = '';
+            } catch (e) {
+                alert("Error issuing tool!");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "➕ Issue Tool";
+            }
+        }
+
+        async function returnToolItem(toolLogId) {
+            if (!confirm("ഈ ടൂൾ തിരികെ സ്റ്റോറിൽ ലഭിച്ചതായി ഉറപ്പാണോ?")) return;
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'returnTool',
+                        toolLogId: toolLogId
+                    })
+                });
+
+                const target = toolsLogs.find(r => r['Tool Log ID'] === toolLogId);
+                if (target) target['Return Date'] = new Date().toLocaleString();
+
+                renderToolsPendingTable();
+                updateNavBadges();
+            } catch (e) {
+                alert("Tool Return അപ്‌ഡേറ്റ് ചെയ്യാൻ സാധിച്ചില്ല!");
+            }
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#sample-item-search') && !e.target.closest('#sample-search-dropdown')) {
+                document.getElementById('sample-search-dropdown').classList.add('hidden');
+            }
+            if (!e.target.closest('#tool-search-input') && !e.target.closest('#tool-search-dropdown')) {
+                document.getElementById('tool-search-dropdown').classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>
