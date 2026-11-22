@@ -236,7 +236,7 @@
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns (തിരികെ ലഭിക്കാനുള്ളവ)</h3>
+                        <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns (to be return back)</h3>
                         <p class="text-xs text-amber-700">Returned items are automatically hidden from this list and logged in Excel.</p>
                     </div>
                     <span id="pending-samples-count" class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Pending</span>
@@ -320,7 +320,7 @@
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return (തിരികെ ലഭിക്കാനുള്ള ടൂൾസ്)</h3>
+                        <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return (Tools for recovery)</h3>
                         <p class="text-xs text-rose-700">Click Return once the tool is back in store. Returned items hide automatically.</p>
                     </div>
                     <span id="pending-tools-count" class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Issued</span>
@@ -1194,7 +1194,7 @@
         }
 
         async function returnToolItem(toolLogId) {
-            if (!confirm("ഈ ടൂൾ തിരികെ സ്റ്റോറിൽ ലഭിച്ചതായി ഉറപ്പാണോ?")) return;
+            if (!confirm("Are you sure this tool has been returned to the store?")) return;
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -1213,7 +1213,7 @@
                 renderToolsPendingTable();
                 updateNavBadges();
             } catch (e) {
-                alert("Tool Return അപ്‌ഡേറ്റ് ചെയ്യാൻ സാധിച്ചില്ല!");
+                alert("Unable to update Tool Return!");
             }
         }
 
