@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ml">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -236,7 +236,7 @@
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns (to be return back)</h3>
+                        <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns</h3>
                         <p class="text-xs text-amber-700">Returned items are automatically hidden from this list and logged in Excel.</p>
                     </div>
                     <span id="pending-samples-count" class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Pending</span>
@@ -279,34 +279,34 @@
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-800">🛠️ Issue Tool / Calibration Equipment</h2>
-                        <p class="text-xs text-slate-500">Select tool from Tools_Master and record who is taking it.</p>
+                        <h2 class="text-lg font-bold text-slate-800">🛠️ Issue Tool (From Tools_Master)</h2>
+                        <p class="text-xs text-slate-500">Search and select tools exclusively from Tools_Master. Logs are saved in Tools_Logs.</p>
                     </div>
                     <button onclick="loadToolsData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">🔄 Refresh Tools</button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Search Tool -->
+                    <!-- Search Tool from Tools_Master -->
                     <div class="relative">
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">1. Search Tool (Name, Serial No or Code) *</label>
-                        <input type="text" id="tool-search-input" oninput="searchToolsCatalog()" onfocus="searchToolsCatalog()" placeholder="Type Temperature Meter, Pressure Gauge, Serial No..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">1. Search Tool Name / Serial No / Code *</label>
+                        <input type="text" id="tool-search-input" oninput="searchToolsCatalog()" onfocus="searchToolsCatalog()" placeholder="Type tool name (e.g. abc meter, efg meter) or Serial No..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                         <div id="tool-search-dropdown" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
                     </div>
 
                     <!-- Selected Tool Details Preview -->
                     <div id="tool-selected-box" class="bg-slate-50 border border-slate-200 p-3 rounded-lg flex flex-col justify-center">
-                        <span class="text-xs text-slate-400">No tool selected yet. Search and click a tool from the list.</span>
+                        <span class="text-xs text-slate-400">No tool selected yet. Type to search from Tools_Master.</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Taken By (Person Name) *</label>
-                        <input type="text" id="tool-taken-by" placeholder="Technician / Engineer Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="tool-taken-by" placeholder="Technician / Engineer Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Details (Project / Phone / Notes) *</label>
-                        <input type="text" id="tool-details" placeholder="Project name, mobile no, etc..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" id="tool-details" placeholder="Project name, mobile no, etc..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
                         <button id="btn-submit-tool" onclick="submitToolIssue()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-sm transition">
@@ -320,8 +320,8 @@
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
-                        <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return (Tools for recovery)</h3>
-                        <p class="text-xs text-rose-700">Click Return once the tool is back in store. Returned items hide automatically.</p>
+                        <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return</h3>
+                        <p class="text-xs text-rose-700">Click Return once the tool is returned. Returned items hide automatically from this list.</p>
                     </div>
                     <span id="pending-tools-count" class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Issued</span>
                 </div>
@@ -335,7 +335,7 @@
                                 <th class="p-3">Product/Item Code</th>
                                 <th class="p-3">Expiry Date</th>
                                 <th class="p-3">Taken By</th>
-                                <th class="p-3">Details / Issued</th>
+                                <th class="p-3">Details</th>
                                 <th class="p-3 text-center">Action</th>
                             </tr>
                         </thead>
@@ -357,7 +357,7 @@
     </div>
 
     <script>
-        // നിങ്ങളുടെ Google Apps Script Web App URL ഇവിടെ നൽകുക
+        // Google Apps Script Web App URL
         const SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6Pt_NVgYwPkUbRueU64yj5yEE_QCvQyfJDmxBUsbFKbUfMnmRHdyXckSAt3RGvEYUmw/exec';
         const GOOGLE_DRIVE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1XJ202iJ5mZ37I0mO1q3Q6S552504261787044458290/export?format=csv';
 
@@ -412,7 +412,6 @@
 
         async function preloadAllCatalogs() {
             try {
-                // Background fetch for Sample dropdown & badges
                 const [resMain, resQF, resSamples, resToolsMaster, resToolsLogs] = await Promise.all([
                     fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Main Store')}`).then(r => r.json()).catch(() => []),
                     fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('QF')}`).then(r => r.json()).catch(() => []),
@@ -423,9 +422,9 @@
 
                 mainStoreCatalog = normalizeInventoryRows(resMain);
                 qfCatalog = normalizeInventoryRows(resQF);
-                sampleLogs = resSamples || [];
-                toolsMaster = resToolsMaster || [];
-                toolsLogs = resToolsLogs || [];
+                sampleLogs = Array.isArray(resSamples) ? resSamples : [];
+                toolsMaster = Array.isArray(resToolsMaster) ? resToolsMaster.filter(t => t['Tool Name'] && t['Tool Name'].toString().trim() !== '') : [];
+                toolsLogs = Array.isArray(resToolsLogs) ? resToolsLogs : [];
 
                 updateNavBadges();
             } catch (e) {
@@ -768,7 +767,7 @@
                     }, 2000);
                 }
             } catch (e) {
-                alert("Google Sheet-ilekk update cheyyaan kazhinjilla!");
+                alert("Failed to update Google Sheet!");
                 if (btn) {
                     btn.innerText = "Submit";
                     btn.disabled = false;
@@ -810,7 +809,7 @@
             if (matches.length === 0) {
                 dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500">No items found in ${source}.</div>`;
             } else {
-                dropdown.innerHTML = matches.map((item, idx) => `
+                dropdown.innerHTML = matches.map((item) => `
                     <div onclick='selectSampleItem(${JSON.stringify(item).replace(/'/g, "&#39;")})' class="p-2.5 hover:bg-blue-50 cursor-pointer flex justify-between items-center gap-2">
                         <div>
                             <span class="text-xs font-mono font-bold text-blue-700">SR: ${item.srNo || '-'}</span>
@@ -865,7 +864,6 @@
 
         function renderSamplePendingTable() {
             const tbody = document.getElementById('sample-pending-tbody');
-            // തിരികെ ലഭിക്കാത്തവ (Pending) മാത്രം കാണിക്കുന്നു
             const pendingList = sampleLogs.filter(row => {
                 const status = (row['Status'] || '').toString().trim().toLowerCase();
                 return row['Sample ID'] && status !== 'returned';
@@ -906,7 +904,7 @@
 
         async function submitSampleIssue() {
             if (!selectedSampleItem) {
-                alert("ദയവായി ലിസ്റ്റിൽ നിന്ന് ഒരു ഐറ്റം സെലക്ട് ചെയ്യുക!");
+                alert("Please select an item from the list first!");
                 return;
             }
             const sourceStore = document.getElementById('sample-source-store').value;
@@ -915,7 +913,7 @@
             const toProject = document.getElementById('sample-to-project').value.trim();
 
             if (!takenBy || !toProject || !sampleQty) {
-                alert("ദയവായി Qty, Taken By, To Project എന്നിവയെല്ലാം പൂരിപ്പിക്കുക!");
+                alert("Please fill in Qty, Taken By, and To Project!");
                 return;
             }
 
@@ -945,7 +943,6 @@
                     })
                 });
 
-                // Optimistic UI update
                 sampleLogs.unshift({
                     'Sample ID': sampleId,
                     'Item No.': selectedSampleItem.itemNo,
@@ -964,7 +961,6 @@
                 renderSamplePendingTable();
                 updateNavBadges();
 
-                // Reset form
                 clearSelectedSampleItem();
                 document.getElementById('sample-item-search').value = '';
                 document.getElementById('sample-qty').value = '1';
@@ -979,7 +975,7 @@
         }
 
         async function returnSampleItem(sampleId) {
-            if (!confirm("ഈ സാമ്പിൾ സാധനം തിരികെ ലഭിച്ചതായി ഉറപ്പാണോ?")) return;
+            if (!confirm("Are you sure this sample item has been returned?")) return;
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -992,19 +988,18 @@
                     })
                 });
 
-                // Hide immediately from pending list
                 const target = sampleLogs.find(r => r['Sample ID'] === sampleId);
                 if (target) target['Status'] = 'Returned';
 
                 renderSamplePendingTable();
                 updateNavBadges();
             } catch (e) {
-                alert("Return അപ്‌ഡേറ്റ് ചെയ്യാൻ സാധിച്ചില്ല!");
+                alert("Failed to update return status!");
             }
         }
 
         // =====================================================================
-        // MODULE 3: TOOLS TRACKING LOGIC
+        // MODULE 3: TOOLS TRACKING LOGIC (EXCLUSIVELY FROM Tools_Master)
         // =====================================================================
         async function loadToolsData() {
             const tbody = document.getElementById('tools-pending-tbody');
@@ -1013,7 +1008,7 @@
                     <td colspan="7" class="py-10 px-6 text-left">
                         <div class="flex flex-col items-start gap-2">
                             <img src="loader.gif" alt="Loading..." class="w-32 h-32 object-contain">
-                            <span class="text-sm font-bold text-slate-700">Loading Tools Data...</span>
+                            <span class="text-sm font-bold text-slate-700">Loading Tools_Master & Tools_Logs...</span>
                         </div>
                     </td>
                 </tr>`;
@@ -1024,8 +1019,11 @@
                     fetch(`${SCRIPT_WEB_APP_URL}?sheet=${encodeURIComponent('Tools_Logs')}`).then(r => r.json())
                 ]);
 
-                toolsMaster = resMaster || [];
-                toolsLogs = resLogs || [];
+                toolsMaster = Array.isArray(resMaster)
+                    ? resMaster.filter(t => (t['Tool Name'] || '').toString().trim() !== '')
+                    : [];
+                toolsLogs = Array.isArray(resLogs) ? resLogs : [];
+
                 renderToolsPendingTable();
                 updateNavBadges();
             } catch (e) {
@@ -1038,16 +1036,13 @@
             const query = document.getElementById('tool-search-input').value.toLowerCase().trim();
             const dropdown = document.getElementById('tool-search-dropdown');
 
-            if (!query) {
-                dropdown.classList.add('hidden');
-                return;
-            }
-
-            const matches = toolsMaster.filter(t =>
-                (t['Tool Name'] || '').toString().toLowerCase().includes(query) ||
-                (t['Serial No'] || '').toString().toLowerCase().includes(query) ||
-                (t['Product/Item Code'] || '').toString().toLowerCase().includes(query)
-            ).slice(0, 20);
+            // Search ONLY inside toolsMaster (never Main Store or QF)
+            const matches = toolsMaster.filter(t => {
+                if (!query) return true;
+                return (t['Tool Name'] || '').toString().toLowerCase().includes(query) ||
+                       (t['Serial No'] || '').toString().toLowerCase().includes(query) ||
+                       (t['Product/Item Code'] || '').toString().toLowerCase().includes(query);
+            }).slice(0, 25);
 
             if (matches.length === 0) {
                 dropdown.innerHTML = `<div class="p-3 text-xs text-slate-500">No matching tools found in Tools_Master.</div>`;
@@ -1074,7 +1069,7 @@
         function selectToolItem(tool) {
             selectedToolItem = tool;
             document.getElementById('tool-search-dropdown').classList.add('hidden');
-            document.getElementById('tool-search-input').value = `${tool['Tool Name']} (${tool['Serial No'] || ''})`;
+            document.getElementById('tool-search-input').value = `${tool['Tool Name']}${tool['Serial No'] ? ' (S/N: ' + tool['Serial No'] + ')' : ''}`;
 
             document.getElementById('tool-selected-box').innerHTML = `
                 <div class="flex justify-between items-start">
@@ -1093,12 +1088,11 @@
 
         function clearSelectedTool() {
             selectedToolItem = null;
-            document.getElementById('tool-selected-box').innerHTML = `<span class="text-xs text-slate-400">No tool selected yet. Search and click a tool from the list.</span>`;
+            document.getElementById('tool-selected-box').innerHTML = `<span class="text-xs text-slate-400">No tool selected yet. Type to search from Tools_Master.</span>`;
         }
 
         function renderToolsPendingTable() {
             const tbody = document.getElementById('tools-pending-tbody');
-            // Return Date ഇല്ലാത്തവ (തിരികെ ലഭിക്കാത്ത ടൂളുകൾ) മാത്രം കാണിക്കുന്നു
             const pendingTools = toolsLogs.filter(row => {
                 return row['Tool Log ID'] && (!row['Return Date'] || row['Return Date'].toString().trim() === '');
             });
@@ -1132,14 +1126,14 @@
 
         async function submitToolIssue() {
             if (!selectedToolItem) {
-                alert("ദയവായി Tools_Master ലിസ്റ്റിൽ നിന്ന് ഒരു ടൂൾ സെലക്ട് ചെയ്യുക!");
+                alert("Please select a tool from Tools_Master first!");
                 return;
             }
             const takenBy = document.getElementById('tool-taken-by').value.trim();
             const details = document.getElementById('tool-details').value.trim();
 
             if (!takenBy || !details) {
-                alert("ദയവായി Taken By, Details എന്നിവ പൂരിപ്പിക്കുക!");
+                alert("Please fill in Taken By and Details!");
                 return;
             }
 
@@ -1213,7 +1207,7 @@
                 renderToolsPendingTable();
                 updateNavBadges();
             } catch (e) {
-                alert("Unable to update Tool Return!");
+                alert("Failed to update tool return status!");
             }
         }
 
