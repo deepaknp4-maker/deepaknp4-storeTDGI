@@ -1080,7 +1080,7 @@
                 updateNavBadges();
 
                 if (rawPhone) {
-                    const issueMsg = `sample giving time : ${selectedSampleItem.description} sample taken by ${takenBy} ${todayStr}`;
+                    const issueMsg = `${selectedSampleItem.description} sample taken by ${takenBy} ${todayStr}`;
                     openWhatsAppMessage(rawPhone, issueMsg);
                 }
 
@@ -1125,7 +1125,7 @@
 
                 const savedPhone = sampleWhatsAppMap[sampleId];
                 if (savedPhone) {
-                    const retMsg = `return: sample return received on ${returnDateStr}`;
+                    const retMsg = `sample return received on ${returnDateStr}`;
                     openWhatsAppMessage(savedPhone, retMsg);
                 }
             } catch (e) {
@@ -1385,8 +1385,8 @@
             const returnDate = row['Return Date'] || todayStr;
 
             const msg = isReturned
-                ? `return : Tools return received on ${returnDate}`
-                : `tools giving time : ${toolName} taken by ${takenBy} ${todayStr}`;
+                ? `Tools return received on ${returnDate}`
+                : ` ${toolName} taken by ${takenBy} ${todayStr}`;
 
             openWhatsAppMessage(toolWhatsAppMap[toolLogId] || '', msg);
         }
