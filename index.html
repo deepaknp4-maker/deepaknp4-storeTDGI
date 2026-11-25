@@ -168,7 +168,7 @@
         </div>
 
         <!-- =================================================================== -->
-        <!-- MODULE 2: SAMPLE TRACKING (ISSUE & PENDING RETURNS)                 -->
+        <!-- MODULE 2: SAMPLE TRACKING (ISSUE, PENDING RETURNS & WHATSAPP)      -->
         <!-- =================================================================== -->
         <div id="module-samples" class="hidden space-y-6">
             <!-- Sample Issue Entry Form -->
@@ -195,8 +195,6 @@
                     <div class="md:col-span-2 relative">
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Search Item (SR No, Item Code or Description) *</label>
                         <input type="text" id="sample-item-search" oninput="searchSampleCatalog()" onfocus="searchSampleCatalog()" placeholder="Type SR No (e.g. 515) or Item Name to select..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        
-                        <!-- Search Dropdown Results -->
                         <div id="sample-search-dropdown" class="hidden absolute z-30 w-full mt-1 bg-white border border-slate-300 rounded-lg shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100"></div>
                     </div>
                 </div>
@@ -211,13 +209,13 @@
                     <button onclick="clearSelectedSampleItem()" class="text-xs text-red-600 hover:underline font-semibold">✕ Clear</button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Sample Qty *</label>
                         <input type="number" id="sample-qty" value="1" min="0.1" step="any" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Taken By (Name) *</label>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Taken By *</label>
                         <input type="text" id="sample-taken-by" placeholder="Person Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
@@ -225,19 +223,26 @@
                         <input type="text" id="sample-to-project" placeholder="Destination Project..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">6. Qatar WhatsApp (+974)</label>
+                        <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
+                            <span class="px-2.5 py-2 text-xs font-bold text-slate-700 bg-slate-200 select-none">+974</span>
+                            <input type="text" id="sample-whatsapp-no" placeholder="55123456" class="w-full px-2.5 py-2 text-sm bg-white focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
                         <button id="btn-submit-sample" onclick="submitSampleIssue()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-sm transition">
-                            ➕ Submit Sample Issue
+                            ➕ Submit Sample
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Samples List (Only Unreturned Items Shown) -->
+            <!-- Pending Samples List -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="p-4 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
                         <h3 class="font-bold text-amber-900 text-base">⏳ Pending Sample Returns</h3>
-                        <p class="text-xs text-amber-700">Returned items are automatically hidden from this list and logged in Excel.</p>
+                        <p class="text-xs text-amber-700">Returned items hide automatically. Use WhatsApp button to send issue/return updates.</p>
                     </div>
                     <span id="pending-samples-count" class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Pending</span>
                 </div>
@@ -253,7 +258,7 @@
                                 <th class="p-3 text-center">Qty</th>
                                 <th class="p-3">Taken By</th>
                                 <th class="p-3">To Project</th>
-                                <th class="p-3 text-center">Action</th>
+                                <th class="p-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="sample-pending-tbody" class="divide-y divide-slate-200">
@@ -272,15 +277,50 @@
         </div>
 
         <!-- =================================================================== -->
-        <!-- MODULE 3: TOOLS TRACKING (TOOLS_MASTER & TOOLS_LOGS)                -->
+        <!-- MODULE 3: TOOLS TRACKING (EXPIRY ALERT, RENEW, LOGS & WHATSAPP)   -->
         <!-- =================================================================== -->
         <div id="module-tools" class="hidden space-y-6">
+
+            <!-- Expiry Warning Section (Within 1 Month / 30 Days or Expired) -->
+            <div id="tools-expiry-warning-box" class="bg-red-50 border-2 border-red-300 rounded-xl shadow-sm overflow-hidden">
+                <div class="p-4 bg-red-600 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">🚨</span>
+                        <div>
+                            <h3 class="font-bold text-base">Tools Expiring Within 1 Month / Expired Alert</h3>
+                            <p class="text-xs text-red-100">Tools expiring within 30 days or already expired are highlighted in red. Click Renew to update expiry date.</p>
+                        </div>
+                    </div>
+                    <span id="expiring-tools-count" class="bg-white text-red-700 text-xs font-extrabold px-3 py-1 rounded-full">0 Alert</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-red-100 text-red-900 font-semibold border-b border-red-200">
+                            <tr>
+                                <th class="p-3">Tool Name</th>
+                                <th class="p-3">Serial No</th>
+                                <th class="p-3">Product/Item Code</th>
+                                <th class="p-3">Expiry Date</th>
+                                <th class="p-3">Alert Status</th>
+                                <th class="p-3 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tools-expiry-tbody" class="divide-y divide-red-200 bg-red-50/70">
+                            <tr>
+                                <td colspan="6" class="p-4 text-center text-red-700 text-xs font-semibold">Checking tool expiry dates...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Tool Issue Form -->
             <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <div>
                         <h2 class="text-lg font-bold text-slate-800">🛠️ Issue Tool (From Tools_Master)</h2>
-                        <p class="text-xs text-slate-500">Search and select tools exclusively from Tools_Master. Logs are saved in Tools_Logs.</p>
+                        <p class="text-xs text-slate-500">Search and select tools from Tools_Master. Logs are saved in Tools_Logs.</p>
                     </div>
                     <button onclick="loadToolsData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold">🔄 Refresh Tools</button>
                 </div>
@@ -299,14 +339,21 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Taken By (Person Name) *</label>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Taken By *</label>
                         <input type="text" id="tool-taken-by" placeholder="Technician / Engineer Name..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Details (Project / Phone / Notes) *</label>
-                        <input type="text" id="tool-details" placeholder="Project name, mobile no, etc..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Details *</label>
+                        <input type="text" id="tool-details" placeholder="Project name, notes, etc..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4. Qatar WhatsApp (+974)</label>
+                        <div class="flex items-center border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
+                            <span class="px-2.5 py-2 text-xs font-bold text-slate-700 bg-slate-200 select-none">+974</span>
+                            <input type="text" id="tool-whatsapp-no" placeholder="55123456" class="w-full px-2.5 py-2 text-sm bg-white focus:outline-none">
+                        </div>
                     </div>
                     <div>
                         <button id="btn-submit-tool" onclick="submitToolIssue()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-sm transition">
@@ -321,7 +368,7 @@
                 <div class="p-4 bg-rose-50 border-b border-rose-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                     <div>
                         <h3 class="font-bold text-rose-900 text-base">⏳ Issued Tools - Pending Return</h3>
-                        <p class="text-xs text-rose-700">Click Return once the tool is returned. Returned items hide automatically from this list.</p>
+                        <p class="text-xs text-rose-700">Click Return once returned. Returned items hide automatically. Use WhatsApp button to send updates.</p>
                     </div>
                     <span id="pending-tools-count" class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">0 Issued</span>
                 </div>
@@ -336,7 +383,7 @@
                                 <th class="p-3">Expiry Date</th>
                                 <th class="p-3">Taken By</th>
                                 <th class="p-3">Details</th>
-                                <th class="p-3 text-center">Action</th>
+                                <th class="p-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="tools-pending-tbody" class="divide-y divide-slate-200">
@@ -370,9 +417,13 @@
         let toolsMaster = [];
         let toolsLogs = [];
 
+        // Keep WhatsApp numbers in memory only (no Excel column changes)
+        let sampleWhatsAppMap = {};
+        let toolWhatsAppMap = {};
+
         let showMismatchOnly = false;
         let isLoading = true;
-        let currentSheet = 'Main Store'; // Toggle OFF = Main Store, Toggle ON = QF
+        let currentSheet = 'Main Store';
         
         let revealedItems = {};
         let selectedRowId = null;
@@ -384,6 +435,45 @@
             loadInventoryData();
             preloadAllCatalogs();
         };
+
+        // =====================================================================
+        // WHATSAPP HELPER (PERMANENT 974 FOR QATAR)
+        // =====================================================================
+        function formatQatarNumber(rawInput) {
+            if (!rawInput) return '';
+            let digits = rawInput.toString().replace(/\D/g, '');
+            if (!digits) return '';
+            if (digits.startsWith('974') && digits.length >= 11) {
+                return digits;
+            }
+            return '974' + digits;
+        }
+
+        function getTodayFormatted() {
+            const d = new Date();
+            const day = d.getDate();
+            const month = d.getMonth() + 1;
+            const year = d.getFullYear();
+            return `${day}.${month}.${year}`;
+        }
+
+        function openWhatsAppMessage(rawPhone, messageText) {
+            const qatarPhone = formatQatarNumber(rawPhone);
+            if (!qatarPhone) {
+                const entered = prompt("Enter Qatar mobile number (e.g. 55123456):");
+                if (!entered) return;
+                const formatted = formatQatarNumber(entered);
+                if (!formatted) {
+                    alert("Invalid phone number!");
+                    return;
+                }
+                const url = `https://wa.me/${formatted}?text=${encodeURIComponent(messageText)}`;
+                window.open(url, '_blank');
+                return;
+            }
+            const url = `https://wa.me/${qatarPhone}?text=${encodeURIComponent(messageText)}`;
+            window.open(url, '_blank');
+        }
 
         // =====================================================================
         // MODULE NAVIGATION
@@ -427,6 +517,7 @@
                 toolsLogs = Array.isArray(resToolsLogs) ? resToolsLogs : [];
 
                 updateNavBadges();
+                renderExpiryWarningSection();
             } catch (e) {
                 console.error("Background preload error:", e);
             }
@@ -892,14 +983,36 @@
                         <td class="p-3 text-center font-bold text-slate-800">${row['Sample Qty'] || 1} <span class="text-xs font-normal text-slate-500">${row['UOM Code'] || ''}</span></td>
                         <td class="p-3 font-semibold text-slate-800">${row['Taken By'] || '-'}</td>
                         <td class="p-3 font-medium text-indigo-700">${row['To Project'] || '-'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="returnSampleItem('${sampleId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold shadow-sm transition">
-                                ✓ Return
-                            </button>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button onclick="sendSampleWhatsApp('${sampleId}')" title="Send WhatsApp Message" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                    💬 WhatsApp
+                                </button>
+                                <button onclick="returnSampleItem('${sampleId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                    ✓ Return
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        function sendSampleWhatsApp(sampleId) {
+            const row = sampleLogs.find(r => r['Sample ID'] === sampleId);
+            if (!row) return;
+
+            const desc = row['Dscription'] || row['Description'] || row['Item No.'] || 'Item';
+            const takenBy = row['Taken By'] || '';
+            const issueDate = row['Issue Date'] || getTodayFormatted();
+            const isReturned = (row['Status'] || '').toString().trim().toLowerCase() === 'returned';
+            const returnDate = row['Return Date'] || getTodayFormatted();
+
+            const msg = isReturned
+                ? `return: sample return received on ${returnDate}`
+                : `sample giving time : ${desc} sample taken by ${takenBy} ${issueDate}`;
+
+            openWhatsAppMessage(sampleWhatsAppMap[sampleId] || '', msg);
         }
 
         async function submitSampleIssue() {
@@ -911,6 +1024,7 @@
             const sampleQty = document.getElementById('sample-qty').value;
             const takenBy = document.getElementById('sample-taken-by').value.trim();
             const toProject = document.getElementById('sample-to-project').value.trim();
+            const rawPhone = document.getElementById('sample-whatsapp-no').value.trim();
 
             if (!takenBy || !toProject || !sampleQty) {
                 alert("Please fill in Qty, Taken By, and To Project!");
@@ -922,7 +1036,11 @@
             btn.textContent = "Saving...";
 
             const sampleId = "SMP-" + Date.now().toString().slice(-6);
-            const nowStr = new Date().toLocaleString();
+            const todayStr = getTodayFormatted();
+
+            if (rawPhone) {
+                sampleWhatsAppMap[sampleId] = rawPhone;
+            }
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -953,7 +1071,7 @@
                     'Sample Qty': sampleQty,
                     'Taken By': takenBy,
                     'To Project': toProject,
-                    'Issue Date': nowStr,
+                    'Issue Date': todayStr,
                     'Status': 'Pending',
                     'Return Date': ''
                 });
@@ -961,21 +1079,29 @@
                 renderSamplePendingTable();
                 updateNavBadges();
 
+                if (rawPhone) {
+                    const issueMsg = `sample giving time : ${selectedSampleItem.description} sample taken by ${takenBy} ${todayStr}`;
+                    openWhatsAppMessage(rawPhone, issueMsg);
+                }
+
                 clearSelectedSampleItem();
                 document.getElementById('sample-item-search').value = '';
                 document.getElementById('sample-qty').value = '1';
                 document.getElementById('sample-taken-by').value = '';
                 document.getElementById('sample-to-project').value = '';
+                document.getElementById('sample-whatsapp-no').value = '';
             } catch (e) {
                 alert("Error saving sample record!");
             } finally {
                 btn.disabled = false;
-                btn.textContent = "➕ Submit Sample Issue";
+                btn.textContent = "➕ Submit Sample";
             }
         }
 
         async function returnSampleItem(sampleId) {
             if (!confirm("Are you sure this sample item has been returned?")) return;
+
+            const returnDateStr = getTodayFormatted();
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -989,18 +1115,143 @@
                 });
 
                 const target = sampleLogs.find(r => r['Sample ID'] === sampleId);
-                if (target) target['Status'] = 'Returned';
+                if (target) {
+                    target['Status'] = 'Returned';
+                    target['Return Date'] = returnDateStr;
+                }
 
                 renderSamplePendingTable();
                 updateNavBadges();
+
+                const savedPhone = sampleWhatsAppMap[sampleId];
+                if (savedPhone) {
+                    const retMsg = `return: sample return received on ${returnDateStr}`;
+                    openWhatsAppMessage(savedPhone, retMsg);
+                }
             } catch (e) {
                 alert("Failed to update return status!");
             }
         }
 
         // =====================================================================
-        // MODULE 3: TOOLS TRACKING LOGIC (EXCLUSIVELY FROM Tools_Master)
+        // MODULE 3: TOOLS TRACKING LOGIC (EXPIRY ALERT, RENEW, LOGS & WHATSAPP)
         // =====================================================================
+        function parseDateSafe(val) {
+            if (!val) return null;
+            if (val instanceof Date && !isNaN(val.getTime())) return val;
+            const str = val.toString().trim();
+
+            // Handle DD-MM-YYYY or DD.MM.YYYY or DD/MM/YYYY
+            const dmyMatch = str.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{4})$/);
+            if (dmyMatch) {
+                const day = parseInt(dmyMatch[1], 10);
+                const month = parseInt(dmyMatch[2], 10) - 1;
+                const year = parseInt(dmyMatch[3], 10);
+                const dt = new Date(year, month, day);
+                if (!isNaN(dt.getTime())) return dt;
+            }
+
+            const parsed = new Date(str);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDateDisplay(val) {
+            const dt = parseDateSafe(val);
+            if (!dt) return val ? val.toString() : '-';
+            const d = String(dt.getDate()).padStart(2, '0');
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const y = dt.getFullYear();
+            return `${d}-${m}-${y}`;
+        }
+
+        function renderExpiryWarningSection() {
+            const tbody = document.getElementById('tools-expiry-tbody');
+            const countBadge = document.getElementById('expiring-tools-count');
+            const box = document.getElementById('tools-expiry-warning-box');
+
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            const thirtyDaysLater = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+
+            const alertTools = toolsMaster.filter(tool => {
+                const expDate = parseDateSafe(tool['Expiry Date']);
+                if (!expDate) return false;
+                expDate.setHours(0, 0, 0, 0);
+                return expDate <= thirtyDaysLater;
+            });
+
+            countBadge.textContent = `${alertTools.length} Alert`;
+
+            if (alertTools.length === 0) {
+                box.className = "bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between";
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-emerald-800 text-xs font-semibold">✅ No tools expiring within the next 30 days.</td></tr>`;
+                return;
+            }
+
+            box.className = "bg-red-50 border-2 border-red-300 rounded-xl shadow-sm overflow-hidden";
+
+            tbody.innerHTML = alertTools.map((tool, idx) => {
+                const expDate = parseDateSafe(tool['Expiry Date']);
+                expDate.setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+                const statusLabel = diffDays < 0
+                    ? `<span class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">Expired (${Math.abs(diffDays)}d ago)</span>`
+                    : `<span class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">Expiring in ${diffDays}d</span>`;
+
+                const safeName = (tool['Tool Name'] || '').toString().replace(/'/g, "\\'");
+                const safeSerial = (tool['Serial No'] || '').toString().replace(/'/g, "\\'");
+
+                return `
+                    <tr class="hover:bg-red-100/70 transition">
+                        <td class="p-3 font-bold text-red-900">${tool['Tool Name'] || '-'}</td>
+                        <td class="p-3 font-mono text-xs text-red-800">${tool['Serial No'] || '-'}</td>
+                        <td class="p-3 font-mono text-xs text-red-800">${tool['Product/Item Code'] || '-'}</td>
+                        <td class="p-3 font-bold text-red-700">${formatDateDisplay(tool['Expiry Date'])}</td>
+                        <td class="p-3">${statusLabel}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="renewToolExpiry('${safeName}', '${safeSerial}')" class="bg-red-700 hover:bg-red-800 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow-sm transition">
+                                🔁 Renew
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function renewToolExpiry(toolName, serialNo) {
+            const newExpiry = prompt(`Enter new Expiry Date for "${toolName}" (S/N: ${serialNo}) [Format: DD-MM-YYYY]:`);
+            if (!newExpiry || !newExpiry.trim()) return;
+
+            const trimmedExpiry = newExpiry.trim();
+
+            try {
+                await fetch(SCRIPT_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'renewToolExpiry',
+                        toolName: toolName,
+                        serialNo: serialNo,
+                        newExpiryDate: trimmedExpiry
+                    })
+                });
+
+                const target = toolsMaster.find(t =>
+                    (t['Tool Name'] || '').toString().trim() === toolName.toString().trim() &&
+                    (t['Serial No'] || '').toString().trim() === serialNo.toString().trim()
+                );
+                if (target) {
+                    target['Expiry Date'] = trimmedExpiry;
+                }
+
+                renderExpiryWarningSection();
+                alert("Expiry date updated in Tools_Master!");
+            } catch (e) {
+                alert("Failed to renew expiry date!");
+            }
+        }
+
         async function loadToolsData() {
             const tbody = document.getElementById('tools-pending-tbody');
             tbody.innerHTML = `
@@ -1024,6 +1275,7 @@
                     : [];
                 toolsLogs = Array.isArray(resLogs) ? resLogs : [];
 
+                renderExpiryWarningSection();
                 renderToolsPendingTable();
                 updateNavBadges();
             } catch (e) {
@@ -1036,7 +1288,6 @@
             const query = document.getElementById('tool-search-input').value.toLowerCase().trim();
             const dropdown = document.getElementById('tool-search-dropdown');
 
-            // Search ONLY inside toolsMaster (never Main Store or QF)
             const matches = toolsMaster.filter(t => {
                 if (!query) return true;
                 return (t['Tool Name'] || '').toString().toLowerCase().includes(query) ||
@@ -1053,17 +1304,11 @@
                             <div class="text-xs font-bold text-slate-800">${tool['Tool Name'] || '-'}</div>
                             <div class="text-[11px] text-slate-500">S/N: ${tool['Serial No'] || '-'} | Code: ${tool['Product/Item Code'] || '-'}</div>
                         </div>
-                        <span class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 rounded whitespace-nowrap">Exp: ${formatDateOnly(tool['Expiry Date'])}</span>
+                        <span class="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 px-2 py-0.5 rounded whitespace-nowrap">Exp: ${formatDateDisplay(tool['Expiry Date'])}</span>
                     </div>
                 `).join('');
             }
             dropdown.classList.remove('hidden');
-        }
-
-        function formatDateOnly(val) {
-            if (!val) return '-';
-            const str = val.toString();
-            return str.includes('T') ? str.split('T')[0] : str;
         }
 
         function selectToolItem(tool) {
@@ -1078,7 +1323,7 @@
                         <div class="text-xs text-slate-600 mt-0.5">
                             <span class="font-semibold">Serial No:</span> ${tool['Serial No'] || '-'} | 
                             <span class="font-semibold">Code:</span> ${tool['Product/Item Code'] || '-'} | 
-                            <span class="font-semibold text-amber-700">Expiry:</span> ${formatDateOnly(tool['Expiry Date'])}
+                            <span class="font-semibold text-amber-700">Expiry:</span> ${formatDateDisplay(tool['Expiry Date'])}
                         </div>
                     </div>
                     <button onclick="clearSelectedTool()" class="text-xs text-red-600 hover:underline font-semibold">✕</button>
@@ -1111,17 +1356,39 @@
                         <td class="p-3 font-bold text-slate-800">${row['Tool Name'] || '-'}</td>
                         <td class="p-3 font-mono text-xs text-slate-700">${row['Serial No'] || '-'}</td>
                         <td class="p-3 font-mono text-xs text-slate-600">${row['Product/Item Code'] || '-'}</td>
-                        <td class="p-3 text-xs text-amber-700 font-semibold">${formatDateOnly(row['Expiry Date'])}</td>
+                        <td class="p-3 text-xs text-amber-700 font-semibold">${formatDateDisplay(row['Expiry Date'])}</td>
                         <td class="p-3 font-semibold text-indigo-800">${row['Taken By'] || '-'}</td>
                         <td class="p-3 text-xs text-slate-600">${row['Details'] || '-'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="returnToolItem('${logId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-semibold shadow-sm transition">
-                                ✓ Return
-                            </button>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button onclick="sendToolWhatsApp('${logId}')" title="Send WhatsApp Message" class="bg-green-600 hover:bg-green-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                    💬 WhatsApp
+                                </button>
+                                <button onclick="returnToolItem('${logId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold shadow-sm transition">
+                                    ✓ Return
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+        }
+
+        function sendToolWhatsApp(toolLogId) {
+            const row = toolsLogs.find(r => r['Tool Log ID'] === toolLogId);
+            if (!row) return;
+
+            const toolName = row['Tool Name'] || 'Tool';
+            const takenBy = row['Taken By'] || '';
+            const todayStr = getTodayFormatted();
+            const isReturned = row['Return Date'] && row['Return Date'].toString().trim() !== '';
+            const returnDate = row['Return Date'] || todayStr;
+
+            const msg = isReturned
+                ? `return : Tools return received on ${returnDate}`
+                : `tools giving time : ${toolName} taken by ${takenBy} ${todayStr}`;
+
+            openWhatsAppMessage(toolWhatsAppMap[toolLogId] || '', msg);
         }
 
         async function submitToolIssue() {
@@ -1131,6 +1398,7 @@
             }
             const takenBy = document.getElementById('tool-taken-by').value.trim();
             const details = document.getElementById('tool-details').value.trim();
+            const rawPhone = document.getElementById('tool-whatsapp-no').value.trim();
 
             if (!takenBy || !details) {
                 alert("Please fill in Taken By and Details!");
@@ -1142,7 +1410,12 @@
             btn.textContent = "Saving...";
 
             const toolLogId = "TL-" + Date.now().toString().slice(-6);
-            const nowStr = new Date().toLocaleString();
+            const todayStr = getTodayFormatted();
+            const nowDateTime = new Date().toLocaleString();
+
+            if (rawPhone) {
+                toolWhatsAppMap[toolLogId] = rawPhone;
+            }
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -1155,7 +1428,7 @@
                         toolName: selectedToolItem['Tool Name'] || '',
                         serialNo: selectedToolItem['Serial No'] || '',
                         productCode: selectedToolItem['Product/Item Code'] || '',
-                        expiryDate: formatDateOnly(selectedToolItem['Expiry Date']),
+                        expiryDate: formatDateDisplay(selectedToolItem['Expiry Date']),
                         takenBy: takenBy,
                         details: details
                     })
@@ -1166,19 +1439,25 @@
                     'Tool Name': selectedToolItem['Tool Name'] || '',
                     'Serial No': selectedToolItem['Serial No'] || '',
                     'Product/Item Code': selectedToolItem['Product/Item Code'] || '',
-                    'Expiry Date': formatDateOnly(selectedToolItem['Expiry Date']),
+                    'Expiry Date': formatDateDisplay(selectedToolItem['Expiry Date']),
                     'Taken By': takenBy,
-                    'Details': `${details} (Issued: ${nowStr})`,
+                    'Details': `${details} | Issued: ${nowDateTime}`,
                     'Return Date': ''
                 });
 
                 renderToolsPendingTable();
                 updateNavBadges();
 
+                if (rawPhone) {
+                    const issueMsg = `tools giving time : ${selectedToolItem['Tool Name']} taken by ${takenBy} ${todayStr}`;
+                    openWhatsAppMessage(rawPhone, issueMsg);
+                }
+
                 clearSelectedTool();
                 document.getElementById('tool-search-input').value = '';
                 document.getElementById('tool-taken-by').value = '';
                 document.getElementById('tool-details').value = '';
+                document.getElementById('tool-whatsapp-no').value = '';
             } catch (e) {
                 alert("Error issuing tool!");
             } finally {
@@ -1189,6 +1468,8 @@
 
         async function returnToolItem(toolLogId) {
             if (!confirm("Are you sure this tool has been returned to the store?")) return;
+
+            const returnDateStr = getTodayFormatted();
 
             try {
                 await fetch(SCRIPT_WEB_APP_URL, {
@@ -1202,10 +1483,16 @@
                 });
 
                 const target = toolsLogs.find(r => r['Tool Log ID'] === toolLogId);
-                if (target) target['Return Date'] = new Date().toLocaleString();
+                if (target) target['Return Date'] = returnDateStr;
 
                 renderToolsPendingTable();
                 updateNavBadges();
+
+                const savedPhone = toolWhatsAppMap[toolLogId];
+                if (savedPhone) {
+                    const retMsg = `return : Tools return received on ${returnDateStr}`;
+                    openWhatsAppMessage(savedPhone, retMsg);
+                }
             } catch (e) {
                 alert("Failed to update tool return status!");
             }
